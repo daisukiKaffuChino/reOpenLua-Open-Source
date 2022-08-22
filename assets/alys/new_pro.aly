@@ -1,0 +1,32 @@
+{
+    LinearLayout,
+    orientation="vertical",
+    layout_width="100%w",
+    layout_height="fill",
+    paddingLeft="20dp",
+    paddingTop="20dp",
+    paddingRight="20dp",
+    Focusable=true,
+    FocusableInTouchMode=true,
+  
+      {
+        TextInputEditText,
+        w="fill",
+        h="44dp",
+        hint="软件名称",
+        textSize="12dp",
+        singleLine=true,
+        id="project_appName",
+      },
+    
+      {
+        TextInputEditText,
+        w="fill",
+        h="44dp",
+        hint="软件包名",
+        textSize="12dp",
+        singleLine=true,
+        id="project_packageName",
+      },
+    
+  }

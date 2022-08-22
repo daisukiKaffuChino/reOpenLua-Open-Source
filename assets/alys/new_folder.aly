@@ -1,0 +1,22 @@
+{
+    LinearLayout,
+    orientation="vertical",
+    layout_width="fill",
+    layout_height="fill",
+    paddingLeft="20dp",
+    paddingTop="20dp",
+    paddingRight="20dp",
+    Focusable=true,
+    FocusableInTouchMode=true,
+   
+      {
+        TextInputEditText,
+        w="fill",
+        h="44dp",        
+        hint="文件夹名称",
+        textSize="12dp",
+        singleLine=true,
+        id="folder_name",
+      },
+    
+  }

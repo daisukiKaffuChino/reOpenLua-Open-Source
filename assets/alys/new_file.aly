@@ -1,0 +1,22 @@
+{
+    LinearLayout,
+    orientation="vertical",
+    layout_width="100%w",
+    layout_height="fill",
+    paddingLeft="20dp",
+    paddingTop="20dp",
+    paddingRight="20dp",
+    Focusable=true,
+    FocusableInTouchMode=true,
+    
+      {
+        TextInputEditText,
+        layout_width="fill",
+        layout_height="44dp",
+        hint="文件名称",
+        textSize="12dp",
+        singleLine=true,
+        id="file_name",
+      
+    },
+  }

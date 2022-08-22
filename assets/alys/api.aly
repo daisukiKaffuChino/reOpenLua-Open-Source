@@ -1,0 +1,18 @@
+{
+  LinearLayout,
+  w="fill",
+  h="fill",
+  backgroundColor=状态栏背景色,
+  Gravity="center",
+  {
+    ProgressBar,
+    w="24dp",
+    h="24dp",
+  },
+  {
+    TextView,
+    layout_marginLeft="15dp",
+    textSize="12dp",
+    text="正在分析...",
+  },
+}

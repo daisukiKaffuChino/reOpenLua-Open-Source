@@ -1,0 +1,32 @@
+{
+  LinearLayout,
+  orientation="vertical",
+  layout_width="fill",
+  layout_height="80%h",
+  backgroundColor=侧滑栏背景色,
+  gravity="center",
+  {
+    LinearLayout,
+    layout_width="fill",
+    layout_height="4dp",
+    backgroundColor=侧滑栏背景色,
+    id="alp_up",
+    {
+      LinearLayout,
+      layout_width=1000,
+      layout_height="4dp",
+      layout_marginLeft=-1000,
+      backgroundColor=状态栏背景色,
+      id="z",
+    },
+  },
+  {
+    ListView,
+    layout_width="fill",
+    layout_height="fill",
+    fastScrollEnabled="true",
+    dividerHeight="0",
+    id="list",
+  },
+}
+

@@ -1,0 +1,2 @@
+errMsg=false
+nonPoint=false

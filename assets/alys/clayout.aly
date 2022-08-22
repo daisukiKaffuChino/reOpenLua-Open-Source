@@ -1,0 +1,30 @@
+{
+  LinearLayout,
+  w="fill",
+  h="fill",
+  orientation="vertical",
+  paddingLeft="15dp",
+  paddingRight="15dp",
+  backgroundColor=状态栏背景色,
+ 
+    {
+      TextInputEditText,
+      w="fill",
+      h="44dp",
+      hint="类名",
+      textSize="12dp",
+      singleLine=true,
+      id="edit",
+    },
+  
+  {
+    ListView,
+    id="clist",
+    FastScrollEnabled=true,
+    layout_width="fill",
+    items=classes;
+  },
+}
+
+
+
