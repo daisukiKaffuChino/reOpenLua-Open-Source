@@ -1,6 +1,6 @@
 # reOpenLua+
 ### 诸多修改版AndroLua+中的一种。
-<img src="https://photo.weibo.com/5444456750/photos/large/photo_id/4805355652907197/album_id/4340759414372001" width="50%">
+<img src="https://wx2.sinaimg.cn/large/005WsnUygy1h5fsl2ahvxj30e80e8aa6.jpg" width="50%">
 
 不同于绝大多数基于AndroLua+修改的第三方编辑器，reOpenLua+拥有对Java层的大量修改，修复了大量bug并新增了诸多功能，调用原生特性更容易，使开发体验尽可能贴近原生。
 
