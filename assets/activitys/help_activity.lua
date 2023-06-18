@@ -2,78 +2,200 @@ require "import"
 import "android.widget.*"
 import "android.view.*"
 import "android.app.*"
-import "android.graphics.drawable.ColorDrawable"
-import "android.net.Uri"
-import "android.content.Intent"
+--[[
+import "androidx.recyclerview.widget.RecyclerView"
+import "androidx.recyclerview.widget.LinearLayoutManager"
+import "github.daisukiKaffuChino.LuaCustRecyclerHolder"
+import "github.daisukiKaffuChino.LuaGroupRecyclerHolder"
+import "github.daisukiKaffuChino.LuaExpandableRecyclerAdapter"
+import "github.daisukiKaffuChino.ExpandableAdapterCreator"
+import "github.daisukiKaffuChino.expandableRecyclerAdapter.BaseGroupBean"
+import "github.daisukiKaffuChino.expandableRecyclerAdapter.BaseChildBean"]]
+import "github.daisukiKaffuChino.CustomViewPager"
+import "github.daisukiKaffuChino.LuaSimpleMarkdownView"
 import "rawio"
 
 theme = ...
 import ("themes."..theme)
-activity.setTitle('帮助')
-activity.setTheme(android.R.style.Theme_Material)
-
-activity.getSupportActionBar().setElevation(0)
-activity.getSupportActionBar().setBackgroundDrawable(ColorDrawable(状态栏背景色))
-activity.getSupportActionBar().setDisplayShowHomeEnabled(false)
-activity.getWindow().setStatusBarColor(状态栏背景色)
-activity.getWindow().setNavigationBarColor(状态栏背景色)
+activity.setTitle("帮助")
 activity.getSupportActionBar().setDisplayShowHomeEnabled(true)
 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true)
+activity.getWindow().setNavigationBarColor(0)
 
 function onOptionsItemSelected(m)
-switch m.getItemId() do
-   case android.R.id.home
-    activity.finish()
-  end
+  activity.finish()
 end
-
-import "org.markdown4j.Markdown4jProcessor"
-local content = rawio.iotsread(activity.getLuaDir().."/help.md","r")
-
+--[[--废案
 activity.setContentView(loadlayout({
-  LinearLayout;
-  layout_width="-1";
-  layout_height="-1";
-  orientation="vertical";
+  LinearLayout,
+  layout_width="-1",
+  layout_height="-1",
+  orientation="vertical",
   {
-    LuaWebView;
-    id="WebView";
-    layout_width="-1";
-    layout_height="-1";
-  };
+    RecyclerView,
+    id="rv",
+    layout_width="-1",
+    layout_height="-1",
+  },
 }))
 
-WebView.loadDataWithBaseURL("",Markdown4jProcessor().process(content),"text/html","utf-8",nil)
+group_item={
+  LinearLayout,
+  layout_width="-1",
+  layout_height="-2",
+  orientation="vertical",
+  {
+    TextView,
+    id="a",
+    layout_width="-1",
+    layout_height="-2",
+  },
+}
 
---好蠢的逻辑 别学
-local currentTheme = nil
-if theme == "AppAutoTheme" then
-  local h = tonumber(os.date("%H"))
-  if h<=7 or h>=19 then
-    currentTheme = "AppDarkTheme"
-   else
-    currentTheme = "AppBlueTheme"
+child_item={
+  LinearLayout,
+  layout_width="-1",
+  layout_height="-2",
+  orientation="vertical",
+  {
+    TextView,
+    id="b",
+    layout_width="-1",
+    layout_height="-2",
+  },
+}
+
+data={BaseGroupBean({
+    BaseChildBean({"aaa","111"})
+  }),
+  BaseGroupBean({
+    BaseChildBean({"bbb","222"}),
+    BaseChildBean({text="ccc"}),
+  })
+}
+
+adp=LuaExpandableRecyclerAdapter(ExpandableAdapterCreator({
+  getGroupCount=function()
+    return #data
+  end,
+  getGroupItem=function(i)
+    return data[i+1]
+  end,
+
+  onCreateGroupViewHolder=function(parent,viewType)
+    local views={}
+    groupHolder=LuaGroupRecyclerHolder(loadlayout(group_item,views),ExpandableAdapterCreator({
+      onExpandStatusChanged=function(adp,isExpanding)
+
+      end
+    }))
+    groupHolder.view.setTag(views)
+    return groupHolder
+  end,
+  onBindGroupViewHolder=function(holder,bean,isExpand)
+    --view=holder.view.getTag()
+
+  end,
+  onCreateChildViewHolder=function(parent,viewType)
+    local views={}
+    childHolder=LuaCustRecyclerHolder(loadlayout(child_item,views))
+    childHolder.view.setTag(views)
+    return childHolder
+  end,
+  onBindChildViewHolder=function(holder,groupBean,childBean)
+
   end
- else
-  currentTheme = theme
+}))
+
+rv.setAdapter(adp)
+rv.setLayoutManager(LinearLayoutManager(this))
+--adp.expandGroup(data[1])
+--]]
+activity.setContentView(loadlayout({
+  LinearLayout,
+  layout_width="-1",
+  layout_height="-1",
+  orientation="vertical",
+  {
+    CustomViewPager,
+    layout_width="-1",
+    layout_height="-1",
+    id="vpg",
+    pages={
+      -----
+      {
+        ListView,
+        id="lv",
+        layout_width="-1",
+        layout_height="-1",
+      },
+      -----    
+      {
+        LinearLayout,
+        layout_width="-1",
+        layout_height="-1",
+        padding="12dp",
+        {
+          LuaSimpleMarkdownView,
+          id="webView",
+          layout_width="-1",
+          layout_height="-1",
+        },
+      },
+      -----
+    },
+  },
+}))
+
+
+item={
+  LinearLayout,
+  layout_height="-2",
+  layout_width="-1",
+  paddingLeft="16dp",
+  paddingRight="16dp",
+  paddingTop="12dp",
+  paddingBottom="12dp",
+  {
+    TextView,
+    id="text",
+    layout_height="-2",
+    layout_width="-1",
+    textColor=textColor,
+    textSize="16dp",
+  },
+}
+
+data={
+  {text="reOpenLua+概述",file="overview.md"},
+  {text="迁移到新标准库",file="lib.md"},
+  {text="init.lua新增配置",file="config.md"},
+  {text="LuaActivity部分新增方法",file="LuaActivity.md"},
+  {text="LuaKeyboardObserver",file="LuaKeyboardObserver.md"},
+  {text="LuaNetStateChangeObserver",file="LuaNetStateChangeObserver.md"},
+  {text="LuaAppDefender",file="LuaAppDefender.md"},
+  {text="LuaCustRecyclerAdapter",file="LuaCustRecyclerAdapter.md"},
+  --{text="示例工程:Material Design",file="",demo=true},
+  --{text="示例工程:LuaCustRecyclerAdapter",file="",demo=true},
+}
+
+adp=LuaAdapter(activity,data,item)
+lv.setAdapter(adp)
+
+lv.onItemClick=function(l,v,p,i)
+  activity.setTitle(data[i].text)
+  vpg.setCurrentItem(1)
+  local md=rawio.iotsread(activity.getLuaDir().."/res/docs/"..data[i].file,"r")
+  --webView.loadDataWithBaseURL("",Markdown4jProcessor().process(md),"text/html","utf-8",nil)
+  webView.loadFromText(md)
 end
 
-WebView.setWebViewClient({
-  onPageFinished = function(view,url)
-    if currentTheme == "AppDarkTheme" then
-      WebView.evaluateJavascript([[javascript:(function(){var styleElem=null,doc=document,ie=doc.all,fontColor=50,sel="body,body *";styleElem=createCSS(sel,setStyle(fontColor),styleElem);function setStyle(fontColor){var colorArr=[fontColor,fontColor,fontColor];return"background-color:#212121 !important;color:RGB("+colorArr.join("%,")+"%) !important;"}function createCSS(sel,decl,styleElem){var doc=document,h=doc.getElementsByTagName("head")[0],styleElem=styleElem;if(!styleElem){s=doc.createElement("style");s.setAttribute("type","text/css");styleElem=ie?doc.styleSheets[doc.styleSheets.length-1]:h.appendChild(s)}if(ie){styleElem.addRule(sel,decl)}else{styleElem.innerHTML="";styleElem.appendChild(doc.createTextNode(sel+" {"+decl+"}"))}return styleElem}})();]],nil)
+function onKeyDown(code,event)
+  if code==KeyEvent.KEYCODE_BACK then
+    if vpg.getCurrentItem()~=0 then
+      vpg.setCurrentItem(0)
+      activity.setTitle("帮助")
+      return true
     end
-  end,
-  shouldOverrideUrlLoading=function(view,url)
-    local intent = Intent()
-    intent.setAction("android.intent.action.VIEW")
-    local content_url = Uri.parse(url)
-    intent.setData(content_url)
-    activity.startActivity(intent)
-    return true
   end
-})
-
-WebView.onLongClick = function()
-  return true
 end

@@ -6,7 +6,6 @@ import "java.io.File"
 import "android.os.Environment"
 import "android.util.TypedValue"
 import "android.content.ClipData"
-import "android.graphics.drawable.ColorDrawable"
 import "android.animation.LayoutTransition"
 
 import "androidx.recyclerview.widget.RecyclerView"
@@ -14,6 +13,7 @@ import "androidx.recyclerview.widget.LinearLayoutManager"
 import "androidx.appcompat.app.AlertDialog"
 
 import "com.google.android.material.button.MaterialButton"
+import "com.google.android.material.dialog.MaterialAlertDialogBuilder"
 
 import "github.daisukiKaffuChino.LuaFileTabView"
 import "github.daisukiKaffuChino.ExtendedEditText"
@@ -27,13 +27,9 @@ import "rawio"
 theme = ...
 import ("themes."..theme)
 activity.Title="Crash Log Viewer"
-activity.setTheme(import ("themes."..theme))
-activity.getWindow().setStatusBarColor(状态栏背景色)
-activity.getWindow().setNavigationBarColor(状态栏背景色)
-activity.getSupportActionBar().setElevation(0)
-activity.getSupportActionBar().setBackgroundDrawable(ColorDrawable(状态栏背景色))
 activity.getSupportActionBar().setDisplayShowHomeEnabled(true)
 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true)
+activity.getWindow().setNavigationBarColor(0)
 
 --绝大部分代码都是以前TuMengR的遗产，我的评价是稍微看看就行了
 --致谢 LuaFileTabView作者 dingyi
@@ -47,7 +43,6 @@ layout={
   LinearLayout,
   layout_width="-1",
   layout_height="-1",
-  background=ColorDrawable(背景色),
   {
     CustomViewPager,
     layout_width="-1",
@@ -111,7 +106,7 @@ layout={
             TextView,
             text="全部复制",
             textSize="16dp",
-            textColor=状态栏背景色,
+            textColor=colorPrimary,
             clickable="true",
             backgroundResource=rippleRes.resourceId,
             onClick=function()
@@ -145,6 +140,80 @@ local function ends(s,End)
   return End=="" or string.sub(s,-string.len(End))== End
 end
 
+item_file={
+  LinearLayout,
+  layout_height="-2",
+  layout_width="-1",
+  paddingTop="4dp",
+  paddingBottom="4dp",
+  gravity="center",
+  id="content",
+  {
+    ImageView,
+    id="img",
+    layout_width="36dp",
+    layout_margin="16dp",
+    colorFilter=colorPrimary,
+    layout_height="36dp",
+  },
+  {
+    LinearLayout,
+    layout_height="fill",
+    layout_width="fill",
+    orientation="vertical",
+    layout_gravity="start|center",
+    layout_marginLeft="16dp",
+    layout_marginRight="16dp",
+    {
+      TextView,
+      id="title",
+      --ellipsize="end",
+      textSize="14dp",
+      --singleLine="true",
+      textColor=textColor,
+      paddingTop="8dp",
+      layout_weight="2",
+    },
+    {
+      TextView,
+      id="subtitle",
+      textSize="12dp",
+      singleLine="true",
+      textColor=subTextColor,
+      paddingBottom="8dp",
+      layout_weight="1",
+    },
+  },
+}
+
+item_dir={
+  LinearLayout,
+  layout_height="-2",
+  layout_width="-1",
+  paddingTop="4dp",
+  paddingBottom="4dp",
+  gravity="center",
+  id="content",
+  {
+    ImageView,
+    id="img",
+    layout_width="36dp",
+    layout_margin="16dp",
+    colorFilter=colorSecondary,
+    layout_height="36dp",
+  },
+  {
+    TextView,
+    id="title",
+    textSize="14dp",
+    layout_weight="1",
+    layout_marginLeft="16dp",
+    layout_marginRight="16dp",
+    textColor=textColor,
+    singleLine="true",
+  },
+}
+
 adp=LuaCustRecyclerAdapter(AdapterCreator({
   getItemCount=function()
     return #listdata
@@ -156,11 +225,11 @@ adp=LuaCustRecyclerAdapter(AdapterCreator({
   local views={}
   switch viewType do
      case 0
-      holder1=LuaCustRecyclerHolder(loadlayout("alys/filechooser_item_dir",views))
+      holder1=LuaCustRecyclerHolder(loadlayout(item_dir,views))
       holder1.view.setTag(views)
       return holder1
      case 1
-      holder2=LuaCustRecyclerHolder(loadlayout("alys/filechooser_item_file",views))
+      holder2=LuaCustRecyclerHolder(loadlayout(item_file,views))
       holder2.view.setTag(views)
       return holder2
     end
@@ -241,18 +310,18 @@ function init(_p)
     end
   end
   for k,v in ipairs(dir) do
-    table.insert(listdata,{title=v.n,path=v.p,img="imgs/folder",type=0})
+    table.insert(listdata,{title=v.n,path=v.p,img="res/imgs/folder",type=0})
   end
   for k,v in ipairs(files) do
-    table.insert(listdata,{title=v.n,path=v.p,sub=getFileInfo(v.p),img="imgs/file",type=1})
+    table.insert(listdata,{title=v.n,path=v.p,sub=getFileInfo(v.p),img="res/imgs/file",type=1})
   end
   local _dirn=#luajava.astable(String(_p).split("/"))
   --print(_dirn)
   if _dirn > 7 then
-    table.insert(listdata,1,{title=".../",path=File(_p).getParentFile(),img="imgs/file_up",type=0})
+    table.insert(listdata,1,{title=".../",path=File(_p).getParentFile(),img="res/imgs/file_up",type=0})
     filetag.visibility=0
    elseif _dirn <= 7 then
-    table.insert(listdata,1,{title="/私有根目录",path=activity.getExternalFilesDir(nil).toString(),img="imgs/folder_priv",type=0})
+    table.insert(listdata,1,{title="/私有根目录",path=activity.getExternalFilesDir(nil).toString(),img="res/imgs/folder_priv",type=0})
     filetag.visibility=8
    else
     filetag.visibility=8
@@ -272,7 +341,7 @@ switch m.getItemId() do
    case android.R.id.home
     activity.finish()
    case
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
     .setTitle("Crash Log Viewer")
     .setMessage("       不同于Lua的Logcat，本工具用于查阅未被捕获的造成程序崩溃的Java异常。这些文件通常都详细记录了设备信息和异常堆栈信息，可帮助开发者快速发现问题。"
     .."\n       出于如今的安卓应用行为规范考虑，reOpenLua+不会将日志写入公共存储。而由于安卓高版本的限制，访问data已不再容易，本工具提供了访问保存在data下的日志的途径。稍加改造也可以作为私有目录文件阅览器使用。")
@@ -285,7 +354,7 @@ end
 --local __l=#luajava.astable(String(basepath).split("/"))-7
 filetag.addOnTabSelectedListener(LuaFileTabView.OnTabSelectedListener{
   onTabSelected=function(tab)
-    --此回调方法会被异常调用，以后再修吧   
+    --此回调方法会被异常调用，以后再修吧  
     -- _l=_l+1--阻止加载多次
     -- if _l>__l then
     task(100,function()
@@ -296,7 +365,7 @@ filetag.addOnTabSelectedListener(LuaFileTabView.OnTabSelectedListener{
 })
 
 function onKeyDown(code,event)
-  if string.find(tostring(event),"KEYCODE_BACK") ~= nil then
+  if code==KeyEvent.KEYCODE_BACK then
     if vpg.getCurrentItem()==1 then
       vpg.setCurrentItem(0)
       return true

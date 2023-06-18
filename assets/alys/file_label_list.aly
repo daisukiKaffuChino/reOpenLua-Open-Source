@@ -1,0 +1,28 @@
+{
+  LinearLayout,
+  orientation="vertical",
+  clickable=true,
+  {
+    TextView,
+    layout_height="30dp",
+    textSize="12dp",
+    paddingTop = "4dp",
+    paddingBottom = "4dp",
+    paddingLeft = "12dp",
+    paddingRight = "12dp",
+    maxWidth="120dp",
+    textColor=subTextColor,
+    gravity="center",
+    ellipsize="start",
+    singleLine="true",
+    id="title",
+  },
+  {
+    TextView,
+    textColor=0x000000,
+    layout_width="48dp",
+    layout_height="2dp",    
+    layout_gravity="center|bottom",
+    id="__title",
+  },
+}

@@ -3,30 +3,79 @@ import "android.widget.*"
 import "android.view.*"
 import "android.app.*"
 import "com.google.android.material.textfield.TextInputEditText"
-import "android.graphics.drawable.ColorDrawable"
+import "github.daisukiKaffuChino.CustomViewPager"
 
 theme=...
 import ("themes."..theme)
 activity.Title="Java API浏览器"
-activity.setTheme(android.R.style.Theme_Material)
-activity.getWindow().setStatusBarColor(状态栏背景色)
-activity.getWindow().setNavigationBarColor(状态栏背景色)
-activity.getSupportActionBar().setElevation(0)
-activity.getSupportActionBar().setBackgroundDrawable(ColorDrawable(状态栏背景色))
 activity.getSupportActionBar().setDisplayShowHomeEnabled(true)
 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true)
 
-function onOptionsItemSelected(m)
-switch m.getItemId() do
-   case android.R.id.home
-    activity.finish()
-  end
-end
 
 local classes=require "activitys.android"
-import "alys.clayout"
-import "alys.mlayout"
 
+layout={
+  LinearLayout,
+  w="fill",
+  h="fill",
+  paddingLeft="16dp",
+  paddingRight="16dp",
+  {
+    CustomViewPager,
+    layout_width="-1",
+    layout_height="-1",
+    id="vpg",
+    pages={
+      -------------
+      {
+        LinearLayout,
+        w="fill",
+        h="fill",
+        orientation="vertical",
+        {
+          TextInputEditText,
+          w="fill",
+          h="64dp",
+          hint="搜索类名...",
+          textSize="16dp",
+          singleLine=true,
+          id="edit",
+        },
+        {
+          ListView,
+          id="clist",
+          FastScrollEnabled=true,
+          layout_width="fill",
+          items=classes,
+        },
+      },
+      -------------
+      {
+        LinearLayout,
+        w="fill",
+        h="fill",
+        orientation="vertical",
+        {
+          TextInputEditText,
+          w="fill",
+          h="64dp",
+          hint="搜索方法名...",
+          textSize="16dp",
+          singleLine=true,
+          id="medit",
+        },
+        {
+          ListView,
+          id="mlist",
+          FastScrollEnabled=true,
+          layout_width="fill",
+        },
+      }
+      -------------
+    },
+  },
+
+}
 
 function adapter(t)
   local ls=ArrayList()
@@ -36,7 +85,7 @@ function adapter(t)
   return ArrayAdapter(activity,android.R.layout.simple_list_item_1,ls)
 end
 
-import "android.content.*"
+import "android.content.ClipData"
 cm=activity.getSystemService(activity.CLIPBOARD_SERVICE)
 
 function copy(str)
@@ -45,17 +94,9 @@ function copy(str)
   Toast.makeText(activity,"已复制到剪切板",1000).show()
 end
 
-
-dlg=Dialog(activity)
-dlg.setContentView(loadlayout(mlayout))
-dlg.getWindow().setBackgroundDrawable(ColorDrawable(状态栏背景色));
-p = dlg.getWindow().getAttributes()
-p.width =activity.Width
-dlg.getWindow().setAttributes(p);
-
 curr_class=nil
 curt_adapter=nil
-activity.setContentView(clayout)
+activity.setContentView(layout)
 clist.setAdapter(adapter(classes))
 
 clist.onItemClick=function(l,v)
@@ -77,8 +118,6 @@ clist.onItemClick=function(l,v)
   for n=0,#cs-1 do
     table.insert(t,tostring(cs[n]))
   end
-
-
 
   curr_ms=class.getMethods()
   for n=0,#curr_ms-1 do
@@ -120,10 +159,10 @@ clist.onItemClick=function(l,v)
     table.insert(t,v)
   end
 
-  dlg.Title=tostring(s)
+  activity.getSupportActionBar().setSubtitle(tostring(s))
   curt_adapter=adapter(t)
   mlist.setAdapter(curt_adapter)
-  dlg.show()
+  vpg.setCurrentItem(1)
 end
 
 clist.onItemLongClick=function(l,v)
@@ -185,3 +224,25 @@ edit.addTextChangedListener{
     clist.setAdapter(adapter(t))
   end
 }
+
+function onOptionsItemSelected(m)
+switch m.getItemId() do
+   case android.R.id.home
+    if vpg.getCurrentItem()==1 then
+      vpg.setCurrentItem(0)
+      activity.getSupportActionBar().setSubtitle(nil)
+     else
+      activity.finish()
+    end
+  end
+end
+
+function onKeyDown(code,event)
+  if code==KeyEvent.KEYCODE_BACK then
+    if vpg.getCurrentItem()==1 then
+      vpg.setCurrentItem(0)
+      activity.getSupportActionBar().setSubtitle(nil)
+      return true
+    end
+  end
+end

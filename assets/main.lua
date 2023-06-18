@@ -8,6 +8,8 @@ import "java.io.*"
 import "android.content.pm.PackageManager"
 import "android.animation.LayoutTransition"
 import "android.graphics.drawable.ColorDrawable"
+import "android.graphics.drawable.GradientDrawable"
+import "android.graphics.drawable.GradientDrawable$Orientation"
 import "android.view.inputmethod.EditorInfo"
 import "android.text.TextUtils"
 import "android.util.TypedValue"
@@ -18,24 +20,23 @@ import "androidx.appcompat.widget.SwitchCompat"
 import "com.google.android.material.bottomsheet.BottomSheetDialog"
 import "com.google.android.material.bottomsheet.BottomSheetBehavior"
 import "com.google.android.material.textfield.TextInputEditText"
+import "com.google.android.material.textfield.TextInputLayout"
+import "com.google.android.material.tabs.TabLayout"
+import "com.google.android.material.dialog.MaterialAlertDialogBuilder"
 
 import "bin"
 import "console"
 
 import "rawio"
 
---2022 08 18 10:28PM
+--2022 12 26
 
 --[[ALL RIGHTS RESERVED
-AndroLua+ 5.0.19/OpenLua+ 0.6.8/reOpenLua+ 0.7.7
-酷安@得想办法娶了智乃 Github@daisukiKaffuChino
-Join our Telegram Channel to report bug!]]
+AndroLua+ 5.0.19/OpenLua+ 0.6.8/reOpenLua+ 0.7.8
+酷安@得想办法娶了智乃 Github@daisukiKaffuChino]]
 
---[[二次开发须知
-reOpenLua+修改了自带的.Lua模块使之与java部分的修改相关联，
-在没有确切把握的情况下请不要擅自修改。对于一些常用方法的改
-变，请参考本应用编辑器的.Lua如何实现。对于一些已被删除的原
-AndroLua+自带支持库，均可以在androidx包下找到平替方案。]]
+--[[reOpenLua+支持并鼓励基于本编辑器的二次开发，或帮助本
+编辑器继续完善功能。同时也欢迎使用此开源代码，并保留出处。]]
 
 
 ----------------------初始化参数-----------------------------------
@@ -51,7 +52,7 @@ pcall(dofile,activity.getLuaDir().."/config/editor_config.lua")
 
 
 --主题
-last_theme = last_theme or "AppAutoTheme"
+last_theme = last_theme or "AppLightTheme"
 
 --最后打开的文件的路径
 last_file_path = last_file_path or app_root_lua
@@ -68,25 +69,21 @@ last_pro_path = last_pro_path
 --历史记录表
 last_history = last_history or {}
 
---LuaEditor配置
-errMsg = errMsg
+--是否在编辑工程/文件
+isEdittingProject = false
 
-nonPoint = nonPoint
+isEdittingFile = false
 
 -----------------------------------------------------------------
-
 
 
 --设置主题
 
 APP_THEME = import("themes."..last_theme)
 
---activity.setTheme(APP_THEME)
-activity.setTheme(R.style.Theme_ReOpenLua_Material3)
+activity.getWindow().setStatusBarColor(colorPrimaryBackground)
 
-activity.getWindow().setStatusBarColor(状态栏背景色)
-
-activity.getWindow().setNavigationBarColor(状态栏背景色)
+activity.getWindow().setNavigationBarColor(colorPrimaryBackground)
 
 activity.getSupportActionBar().hide()
 
@@ -97,6 +94,7 @@ activity.getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBord
 rippleRes = TypedValue()
 activity.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, rippleRes, true)
 
+MDC_R=luajava.bindClass"com.google.android.material.R"
 
 --显示界面布局
 
@@ -120,7 +118,7 @@ mLuaEditor.setUserwordColor(UserwordColor)
 
 mLuaEditor.setStringColor(StringColor)
 
-mLuaEditor.setBackground(ColorDrawable(编辑器背景色))
+mLuaEditor.setBackground(ColorDrawable(colorBackground))
 
 mLuaEditor.enableNonPointing(nonPoint)
 
@@ -132,12 +130,98 @@ mLuaAdapter = LuaAdapter(activity,list_item)
 
 mList.setAdapter(mLuaAdapter)
 
+--初始化文件标签栏
 
+if not showFileLabel then
+
+  _mFileTab.Visibility = View.GONE
+
+end
+
+--文件切换标签
+
+local FileLabelUtil={} --create in 0.7.8
+
+FileLabelUtil.bin=function(self)
+
+  self.view=mFileTab
+
+  self.view.adapter=LuaAdapter(activity,import "alys/file_label_list")
+
+  --self:addLabel("/storage/emulated/0/AndroLua/project/openluadev/main.lua","main.lua")
+
+end
+
+
+FileLabelUtil.chooseLabel=function(self,l)
+
+  for k,v in ipairs(self.view.adapter.data) do
+
+    v.__title.backgroundColor=0
+
+    v.title.textColor=subTextColor
+
+  end
+
+  self.view.adapter.data[l].__title.backgroundColor=colorPrimary
+
+  self.view.adapter.data[l].title.textColor=textColor
+
+  self.view.adapter.notifyDataSetChanged()
+
+  self.view.setVerticalScrollbarPosition(l)
+
+  mSubTitle.setText(self.view.adapter.data[l].__title.text)
+
+end
+
+FileLabelUtil.addLabel=function(self,path,name)
+
+  if File(path).exists() then
+
+    for k,v in ipairs(self.view.adapter.data) do
+
+      if tostring(v.__title.text)==path then
+
+        return FileLabelUtil:chooseLabel(k)
+
+      end
+
+    end
+
+    self.view.adapter.add{
+      title={
+        text=name,
+        textColor=textColor,
+      },
+      __title={
+        text=path,
+        backgroundColor=colorPrimary,
+      }
+    }
+
+    FileLabelUtil:chooseLabel(#self.view.adapter.data)
+
+   else
+
+    print("标签文件不存在")
+
+  end
+
+end
+
+FileLabelUtil:bin()
 
 
 --写入文件内容并保存
 
 function write(path, str)
+
+  if path == app_root_lua then
+
+    return
+
+  end
 
   local ok = rawio.iowrite(path,str,"wb")
 
@@ -150,7 +234,6 @@ function write(path, str)
   return str
 
 end
-
 
 --读取文件内容显示到编辑器
 
@@ -166,7 +249,13 @@ function read(path)
 
   if pcall(_read) then
 
+    isEdittingProject = true
+
+    isEdittingFile = true
+
     mLuaEditor.setText(str)
+
+    FileLabelUtil:addLabel(path,path:match(".*/(.*)"))
 
     last_file_path = path
 
@@ -227,9 +316,9 @@ function save()
 
   if src ~= str then
 
-    if TextUtils.isEmpty(src) then
+    if TextUtils.isEmpty(src) and isEdittingProject==true then
 
-      AlertDialog.Builder(this)
+      MaterialAlertDialogBuilder(this)
 
       .setTitle("写入保护")
 
@@ -259,110 +348,155 @@ function save()
 
 end
 
+
+mFileTab.setOnItemClickListener(AdapterView.OnItemClickListener{
+
+  onItemClick=function(parent,view,pos,i)
+
+    local name=parent.adapter.data[i].title.text
+
+    local path=parent.adapter.data[i].__title.text
+
+    if path==last_file_path then
+
+      mLuaEditor.setSelection(0)
+
+     else
+
+      save()
+
+      FileLabelUtil:addLabel(path,name)
+
+      read(path)
+
+    end
+
+  end
+
+})
+
+mFileTab.setOnItemLongClickListener(AdapterView.OnItemLongClickListener{
+
+  onItemLongClick=function(parent,view,pos,i)
+
+    local name=parent.adapter.data[i].title.text
+
+    local path=parent.adapter.data[i].__title.text
+
+    local tabpop = PopupMenu(activity,view)
+
+    tabpop.Menu.add("文件详情").onMenuItemClick=function()
+
+      local file=File(path)
+
+      local size=LuaUtil.formatFileSize(tointeger(file.length()))
+
+      local cal = Calendar.getInstance()
+
+      cal.setTimeInMillis(file.lastModified())
+
+      local edittime=cal.getTime().toLocaleString()
+
+      MaterialAlertDialogBuilder(this)
+
+      .setTitle("文件详情")
+
+      .setMessage("路径:\n"..path.."\n大小:"..size.."\n修改日期:\n"..edittime)
+
+      .setPositiveButton("确认",nil)
+
+      .show()
+
+    end
+
+    tabpop.Menu.add("关闭其它").onMenuItemClick=function()
+
+      if #parent.adapter.data==1 then
+
+        print("已经是最后一个标签了")
+
+       else
+
+        table.clear(parent.adapter.data)
+
+        parent.adapter.notifyDataSetChanged()
+
+        FileLabelUtil:addLabel(path,name)
+
+        read(path)
+
+      end
+
+    end
+
+    tabpop.Menu.add("关闭").onMenuItemClick=function()
+
+      if #parent.adapter.data==1 then
+
+        print("已经是最后一个标签了")
+
+       else
+
+        save()
+
+        parent.adapter.remove(pos)
+
+        parent.adapter.notifyDataSetChanged()
+
+        for k,v in ipairs(parent.adapter.data) do
+
+          if v.title.textColor==textColor then
+
+            _pos=k-1
+
+          end
+
+        end
+
+        if _pos==nil then
+
+          FileLabelUtil:chooseLabel(#parent.adapter.data)
+
+          read(parent.adapter.data[#parent.adapter.data].__title.text)
+
+          return
+
+        end
+
+        if _pos>pos then
+
+          FileLabelUtil:chooseLabel(_pos+1)
+
+          read(parent.adapter.data[_pos+1].__title.text)
+
+         elseif _pos==pos then
+
+          FileLabelUtil:chooseLabel(#parent.adapter.data)
+
+          read(parent.adapter.data[#parent.adapter.data].__title.text)
+
+        end
+
+      end
+
+    end
+
+    tabpop.show()
+
+  end
+
+})
+
+
 --软件更新回调
 
 function onVersionChanged(n,o)
 
-  local dlg = AlertDialog.Builder(activity)
+  local dlg = MaterialAlertDialogBuilder(activity)
 
   local title = "更新" .. o .. ">" .. n
 
-  local msg = [[
-0.7.7-rc02
-完善 应用内深色模式表现
-修复 若干新增bug
-合并 若干原版AndroLua+特性
-修改 帮助页MarkDown实现
-移除 LuaMarkDown
-
-0.7.7-rc01
-更新依赖:
-appcompat库 1.4.1 ->1.5.0
-material库 1.5.0 ->1.7.0-beta01
-及其它若干Jetpack组件
-
-新增 编辑器设置
-新增 Java崩溃查看器
-被迫新增 kotlin库
-LuaThemeUtil新增更多方法
-LuaPagerAdapter新增更多方法
-LuaEditor新增更多方法
-LuaActivity新增软键盘监听回调方法
-LuaUtil新增更多方法
-新增 LangUtils
-新增 ExtendedEditText
-新增 LuaReflectionUtil
-修改编辑器io为rawio(旋律写的so)
-新增 文件写入保护(解决丢失文本问题)
-新增 编辑器对图片的预览能力
-移除 RippleLayout
-
-尝试修复LuaActivity偶现的意外报错
-修复布局助手保存异常
-修复编辑器接收返回值偶现的异常
-修复LuaAppDefender的错误
-修复LuaMaterialDialog的错误
-修复工程目录存在中文名txt文件时打包异常
-回滚之前版本对AXML的某处修改
-
-0.7.6
-修复打包安装问题
-修复so未正确解压问题
-合并其它若干修复
-
-0.7.5-rc3 
-新增：
-控件CustomViewPager
-工具类LuaJson和LuaWallpaper
-四个NoActionBar主题
-移除ScreenCaptureActivity
-修复了其它若干bug
-
-0.7.5-rc2
-新增支持库:
-SwipeRefreshLayout
-SlidingPaneLayout
-新增方法getOpenLuaState
-修复了若干问题
-
-0.7.5-rc1
-更新依赖:
-androidx.appcompat 1.0.0 ->1.4.1
-com.google.android.material 1.0.0 ->1.5.0
-AndroLua+底层 5.0.16 ->5.0.19
-修复溢出菜单问题
-修复退出时偶现的报错问题(实验性)
-新增补全了部分继承AppCompatActivity方法
-新增了一些控件和辅助类
-优化了调试相关功能(详见帮助)
-LuaEditor新增去除注释
-删除了android.widget包下的一些类
-尝试体积优化
-
--修复LuaUtil的遗留问题
--启动时使用多线程解压
-(致谢@难忘的旋律)
-
-0.7.3-rc2  
-修复遗留问题
-  
-0.7.3
-修复若干显示问题
-修复打包
-新增一些常用支持库
-
-0.7.2
-重写并更新底层到5.0.16
-新增日志记录器
-修复ActionBar溢出菜单
-修复ClassNotFoundException
-
-0.7.1
-修复了一些问题
-
-0.7.0
-第一版
-  ]]
+  local msg = rawio.iotsread(activity.getLuaDir().."/res/docs/update_log.txt","r")
 
   if o == "" then
 
@@ -456,7 +590,7 @@ mPlay.onClick=function()
 
   local pro = mTitle.Text
 
-  if pro=="未打开工程" then
+  if not isEdittingProject then
 
     print("没有打开工程")
 
@@ -466,7 +600,7 @@ mPlay.onClick=function()
 
     local main = app_root_pro_dir.."/"..mTitle.Text.."/".."main.lua"
 
-    activity.newActivity(main)
+    activity.newProject(main)
 
   end
 
@@ -504,7 +638,17 @@ mMore.onClick=function()
 
   menu4 = menu.addSubMenu("设置")
 
+  menu5 = menu.addSubMenu("查看")
+
   menu1.add("保存").onMenuItemClick=function(a)
+
+    if not isEdittingFile then
+
+      print("未打开文件,不能保存")
+
+      return
+
+    end
 
     save()
 
@@ -514,7 +658,7 @@ mMore.onClick=function()
 
   menu1.add("编译").onMenuItemClick=function(a)
 
-    if mSubTitle.Text=="未打开文件" then
+    if not isEdittingFile then
 
       print("未打开文件,不能编译")
 
@@ -540,7 +684,7 @@ mMore.onClick=function()
 
   menu2.add("打包").onMenuItemClick=function(a)
 
-    if mTitle.Text=="未打开工程" then
+    if not isEdittingProject then
 
       print("未打开工程,不能打包")
 
@@ -550,13 +694,41 @@ mMore.onClick=function()
 
     save()
 
-    bin(app_root_pro_dir .."/".. mTitle.Text .. "/")
+    local prodir=app_root_pro_dir .."/".. mTitle.Text .. "/"
+
+    local app={}
+
+    loadfile(prodir.."init.lua","bt",app)()
+
+    if app.reOpenLuaTheme==nil then
+
+      MaterialAlertDialogBuilder(this)
+
+      .setTitle("打包出错")
+
+      .setMessage("未配置reOpenLuaTheme，将仅应用默认主题。确定要继续吗？")
+
+      .setPositiveButton("打开工程属性",function()
+
+        activity.newActivity("activitys/pro_activity", { prodir , last_theme })
+
+      end)
+
+      .setNegativeButton("继续打包",function()bin(prodir)end)
+
+      .show()
+
+     else
+
+      bin(prodir)
+
+    end
 
   end
 
   menu2.add("导出").onMenuItemClick=function(a)
 
-    if mTitle.Text=="未打开工程" then
+    if not isEdittingProject then
 
       print("未打开工程,不能导出")
 
@@ -573,11 +745,11 @@ mMore.onClick=function()
   end
 
 
-  menu2.add("导出并分享").onMenuItemClick=function(a)
+  menu2.add("关闭工程").onMenuItemClick=function(a)
 
-    if mTitle.Text=="未打开工程" then
+    if not isEdittingProject then
 
-      print("未打开工程,不能导出")
+      print("未打开工程")
 
       return
 
@@ -585,13 +757,18 @@ mMore.onClick=function()
 
     save()
 
-    local p = ShareAndExport(app_root_pro_dir .."/".. mTitle.Text)
+    write(activity.getLuaDir().."/config/lua_project.lua",[[last_file_path=nil
+last_file_cursor=nil
+last_dir_path=nil
+last_pro_path=nil]])
 
-    if p then
+    write(activity.getLuaDir().."/config/lua_history.lua","last_history=nil")
 
-      activity.shareFile(p)
+    activity.newActivity("main")
 
-    end
+    activity.overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out)
+
+    activity.finish()
 
   end
 
@@ -603,7 +780,7 @@ mMore.onClick=function()
 
   menu2.add("属性").onMenuItemClick=function(a)
 
-    if mTitle.Text=="未打开工程" then
+    if not isEdittingProject then
 
       print("未打开工程,不能设置属性")
 
@@ -625,9 +802,9 @@ mMore.onClick=function()
 
   menu3.add("导入分析").onMenuItemClick=function(a)
 
-    if mTitle.Text=="未打开工程" then
+    if not isEdittingProject then
 
-      print("未打开工程,不能导入分析")
+      print("未打开文件,不能导入分析")
 
       return
 
@@ -654,7 +831,7 @@ mMore.onClick=function()
 
     --感谢alua官2群群友true
 
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
 
     .setTitle("去除注释")
 
@@ -726,33 +903,23 @@ mMore.onClick=function()
 
   end
 
-  _menu3_ = menu3.addSubMenu("查看日志")
-
-  _menu3_.add("Lua调试信息").onMenuItemClick=function(a)
-
-    activity.newActivity("activitys/log_activity",{ last_theme })
-
-  end
-
-  _menu3_.add("Java崩溃信息").onMenuItemClick=function(a)
-
-    activity.newActivity("activitys/crash_activity",{ last_theme })
-
-  end
-
-  menu3.add("Java浏览器").onMenuItemClick=function(a)
-
-    activity.newActivity("activitys/api_activity",{ last_theme })
-
-  end
-
   menu4.add("主题切换").onMenuItemClick=function(a)
 
-    AlertDialog.Builder(activity)
+    MaterialAlertDialogBuilder(activity)
 
     .setTitle("主题列表")
 
-    .setItems({"自适应主题","蓝色主题","黑色主题"},function(d,i)
+    .setItems({"浅色主题","深色主题"},function(d,i)
+
+      local function editInitTheme(theme)
+        str=rawio.iotsread(activity.getLuaDir().."/init.lua", "r")
+        if last_theme=="AppLightTheme" then
+          oldtheme="Theme.MaterialComponents.Light"
+         else
+          oldtheme="Theme.MaterialComponents.Dark"
+        end
+        rawio.iowrite(activity.getLuaDir().."/init.lua",tostring(str:gsub(oldtheme,theme)),"w+")
+      end
 
       switch i
 
@@ -760,7 +927,9 @@ mMore.onClick=function()
 
         save()
 
-        write(activity.getLuaDir().."/config/lua_theme.lua", string.format("last_theme=%q","AppAutoTheme"))
+        write(activity.getLuaDir().."/config/lua_theme.lua", string.format("last_theme=%q","AppLightTheme"))
+
+        editInitTheme("Theme.MaterialComponents.Light")
 
         activity.newActivity("main")
 
@@ -772,19 +941,9 @@ mMore.onClick=function()
 
         save()
 
-        write(activity.getLuaDir().."/config/lua_theme.lua", string.format("last_theme=%q","AppBlueTheme"))
-
-        activity.newActivity("main")
-
-        activity.overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out)
-
-        activity.finish()
-
-       case 2
-
-        save()
-
         write(activity.getLuaDir().."/config/lua_theme.lua", string.format("last_theme=%q","AppDarkTheme"))
+
+        editInitTheme("Theme.MaterialComponents.Dark")
 
         activity.newActivity("main")
 
@@ -802,13 +961,11 @@ mMore.onClick=function()
 
   menu4.add("编辑器设置").onMenuItemClick=function(a)
 
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
 
     .setTitle("编辑器设置")
 
     .setView(loadlayout("alys.editor_setting"))
-
-    .setNegativeButton("取消",nil)
 
     .show()
 
@@ -816,14 +973,16 @@ mMore.onClick=function()
 
     sw2.setChecked(nonPoint)
 
+    sw3.setChecked(showFileLabel)
+
     sw1.onClick=function(v)
 
       errMsg=v.isChecked()
 
-      write(activity.getLuaDir().."/config/editor_config.lua", string.format("errMsg=%q", errMsg).."\n"..string.format("nonPoint=%q", nonPoint))
+      write(activity.getLuaDir().."/config/editor_config.lua", string.format("errMsg=%q", errMsg).."\n"..string.format("nonPoint=%q", nonPoint).."\n"..string.format("showFileLabel=%q", showFileLabel))
 
       mLuaEditor.enableDrawingErrMsg(errMsg)
-      
+
       mLuaEditor.invalidate()
 
     end
@@ -832,17 +991,53 @@ mMore.onClick=function()
 
       nonPoint=v.isChecked()
 
-      write(activity.getLuaDir().."/config/editor_config.lua", string.format("errMsg=%q", errMsg).."\n"..string.format("nonPoint=%q", nonPoint))
+      write(activity.getLuaDir().."/config/editor_config.lua", string.format("errMsg=%q", errMsg).."\n"..string.format("nonPoint=%q", nonPoint).."\n"..string.format("showFileLabel=%q", showFileLabel))
 
       mLuaEditor.enableNonPointing(nonPoint)
-      
+
       mLuaEditor.invalidate()
+
+    end
+
+    sw3.onClick=function(v)
+
+      showFileLabel=v.isChecked()
+
+      write(activity.getLuaDir().."/config/editor_config.lua", string.format("errMsg=%q", errMsg).."\n"..string.format("nonPoint=%q", nonPoint).."\n"..string.format("showFileLabel=%q", showFileLabel))
+
+      if showFileLabel then
+
+        _mFileTab.Visibility = View.VISIBLE
+
+       else
+
+        _mFileTab.Visibility = View.GONE
+
+      end
 
     end
 
   end
 
-  menu.add("帮助").onMenuItemClick=function(a)
+  menu5.add("Lua调试日志").onMenuItemClick=function(a)
+
+    activity.newActivity("activitys/log_activity",{ last_theme })
+
+  end
+
+  menu5.add("崩溃日志").onMenuItemClick=function(a)
+
+    activity.newActivity("activitys/crash_activity",{ last_theme })
+
+  end
+
+  menu5.add("Java方法浏览器").onMenuItemClick=function(a)
+
+    activity.newActivity("activitys/api_activity",{ last_theme })
+
+  end
+
+  menu5.add("reOpenLua+帮助").onMenuItemClick=function(a)
 
     activity.newActivity("activitys/help_activity",{ last_theme })
 
@@ -1059,6 +1254,8 @@ function onCreate()
 
     open(last_file_path)
 
+    isEdittingProject = true
+
     last_file_cursor = last_file_cursor or 0
 
     if last_file_cursor < mLuaEditor.getText().length() then
@@ -1071,6 +1268,129 @@ function onCreate()
 
 end
 
+
+function import_alp_dialog()--0.7.8
+
+  MaterialAlertDialogBuilder(activity)
+
+  .setTitle("导入工程")
+
+  .setItems({"选择文件","自动搜索"},function(d,i)
+
+    if i==0 then
+
+      local lv=ListView(this).setFastScrollEnabled(true)
+
+      local cp =TextView(this).setTextColor(subTextColor).setTextSize(14)
+
+      MaterialAlertDialogBuilder(this)
+
+      .setTitle("选择工程(*.alp)")
+
+      .setView(LinearLayout(this).setOrientation(1).addView(cp).addView(lv))
+
+      .setPositiveButton("取消",nil)
+
+      .show()
+
+      local adp=ArrayAdapter(this,android.R.layout.simple_list_item_1)
+
+      lv.setAdapter(adp)
+
+      local rootpath=Environment.getExternalStorageDirectory().toString()
+
+      local function setItem(path)
+
+        path=tostring(path)
+
+        adp.clear()
+
+        cp.setText(path)
+
+        if path~=rootpath then
+
+          adp.add("../")
+
+        end
+
+        ls=File(path).listFiles()
+
+        if ls~=nil then
+
+          ls=luajava.astable(File(path).listFiles())
+
+          table.sort(ls,function(a,b)
+
+            return (a.isDirectory()~=b.isDirectory() and a.isDirectory()) or ((a.isDirectory()==b.isDirectory()) and a.Name<b.Name)
+
+          end)
+
+         else
+
+          ls={}
+
+        end
+
+        for index,c in ipairs(ls) do
+
+          if c.isDirectory() then
+
+            adp.add(c.Name.."/")
+
+           elseif c.isFile() and ends(c.Name,".alp") then
+
+            adp.add(c.Name)
+
+          end
+
+        end
+
+      end
+      setItem(rootpath)
+
+      lv.onItemClick=function(l,v,p,s)
+
+        local itemt=v.Text
+
+        local mpath=nil
+
+        if cp.Text==rootpath then
+
+          mpath=ls[p+1]
+
+         else
+
+          mpath=ls[p]
+
+        end
+
+        if itemt=="../" then
+
+          setItem(File(cp.Text).getParentFile())
+
+         elseif mpath.isDirectory() then
+
+          setItem(mpath)
+
+         elseif mpath.isFile() then
+
+          open(mpath.getPath())
+
+        end
+
+      end
+
+     else
+
+      alpFindDialog_show()
+
+    end
+
+  end)
+
+  .show()
+
+end
 
 
 --查找alp工程的弹窗
@@ -1118,9 +1438,9 @@ function alpFindDialog_show()
 
       malpImg = {
 
-        src="imgs/project.png",
+        src="res/imgs/project.png",
 
-        colorFilter=图标着色,
+        colorFilter=colorSecondary,
 
       },
       malpTitle={
@@ -1141,7 +1461,7 @@ function alpFindDialog_show()
 
   function alpup()
 
-    alp_up.setVisibility(View.GONE)
+    alp_pb.setVisibility(View.GONE)
 
   end
 
@@ -1255,11 +1575,11 @@ function alpFindDialog_show()
 
       if v.canScrollVertically(-1) then
 
-        v.requestDisallowInterceptTouchEvent(true);
+        v.requestDisallowInterceptTouchEvent(true)
 
        else
 
-        v.requestDisallowInterceptTouchEvent(false);
+        v.requestDisallowInterceptTouchEvent(false)
 
       end
 
@@ -1273,33 +1593,9 @@ function alpFindDialog_show()
 
     local path = v.getChildAt(1).getChildAt(1).Text
 
-    open(path);
+    open(path)
 
   end
-
-  function LandscapeRefreshAnimation(id,w,t)
-
-    import "android.content.Context"
-
-    wm = activity.getSystemService(Context.WINDOW_SERVICE);
-
-    width = wm.getDefaultDisplay().getWidth();
-
-    import "android.view.animation.TranslateAnimation"
-
-    Translate_up_down=TranslateAnimation(0,width+w, 0, 0)
-
-    Translate_up_down.setDuration(t)
-
-    Translate_up_down.setRepeatCount(-1)
-
-    Translate_up_down.setFillAfter(true)
-
-    id.startAnimation(Translate_up_down)
-
-  end
-
-  LandscapeRefreshAnimation(z,1000,1500)
 
 end
 
@@ -1310,7 +1606,7 @@ function new_file_dialog()
 
   import "alys.new_file"
 
-  local new_file_dlg = AlertDialog.Builder(activity)
+  local new_file_dlg = MaterialAlertDialogBuilder(activity)
 
   new_file_dlg.setTitle("新建文件")
 
@@ -1370,7 +1666,7 @@ function new_folder_dialog()
 
   import "alys.new_folder"
 
-  local new_folder_dlg = AlertDialog.Builder(activity)
+  local new_folder_dlg = MaterialAlertDialogBuilder(activity)
 
   new_folder_dlg.setTitle("新建文件夹")
 
@@ -1442,16 +1738,19 @@ lcode = [[
 }
 ]]
 upcode = [[
-theme="Theme_Material_Light_NoActionBar"
 welcome_time="0"
 debugmode=true
+reOpenLuaTheme="Theme.Material3.Light"
+theme="Theme_Material_Light"--Deprecated in reOpenLua+
+enableLegacyTheme=false
 enableExtendedOutputSupport=false
 enableDialogLog=false
 user_permission={
   "INTERNET",
-  "WRITE_EXTERNAL_STORAGE",
+  "WRITE_EXTERNAL_STORAGE"
 }
 ]]
+
 
 
 
@@ -1483,9 +1782,13 @@ function open(path)
 
     or ends(path,".java")
 
+    or ends(path,".kt")
+
     or ends(path,".txt")
 
     or ends(path,".json")
+
+    or ends(path,".md")
 
     then
 
@@ -1534,195 +1837,6 @@ function open(path)
   mSubTitle.setText(path)
 
 end
-
-
---导出为alp文件并分享
-function ShareAndExport(pdir)
-
-  require "import"
-
-  import "java.util.zip.*"
-
-  import "java.io.*"
-
-  local function copy(input, output)
-
-    local b = byte[2 ^ 16]
-
-    local l = input.read(b)
-
-    while l > 1 do
-
-      output.write(b, 0, l)
-
-      l = input.read(b)
-
-    end
-
-    input.close()
-
-  end
-
-  local f = File(pdir)
-
-  local date = os.date("%y%m%d%H%M%S")
-
-  local tmp = activity.getLuaExtDir("backup") .. "/" .. f.Name .. ".alp"
-
-  local p = {}
-
-  local e, s = pcall(loadfile(f.Path .. "/init.lua", "bt", p))
-
-  if e then
-
-    if p.mode then
-
-      tmp = string.format("%s/%s.alp", activity.getLuaExtDir("backup"), p.appname)
-
-     else
-
-      tmp = string.format("%s/%s.alp", activity.getLuaExtDir("backup"), p.appname)
-
-    end
-
-  end
-
-  local out = ZipOutputStream(FileOutputStream(tmp))
-
-  local using={}
-
-  local using_tmp={}
-
-  function addDir(out, dir, f)
-
-    local ls = f.listFiles()
-
-    for n = 0, #ls - 1 do
-
-      local name = ls[n].getName()
-
-      if name:find("%.apk$") or name:find("%.luac$") or name:find("^%.") then
-
-       elseif
-
-        p.mode
-
-        and name:find("%.lua$")
-
-        and name ~= "init.lua"
-
-        then
-
-        local ff=io.open(ls[n].Path)
-
-        local ss=ff:read("a")
-
-        ff:close()
-
-        for u in ss:gmatch([[require *%b""]]) do
-
-          if using_tmp[u]==nil then
-
-            table.insert(using,u)
-
-            using_tmp[u]=true
-
-          end
-
-        end
-
-        local path, err = console.build(ls[n].Path)
-
-        if path then
-
-          entry = ZipEntry(dir .. name)
-
-          out.putNextEntry(entry)
-
-          copy(FileInputStream(File(path)), out)
-
-          os.remove(path)
-
-         else
-
-          error(err)
-
-        end
-
-       elseif
-
-        p.mode
-
-        and name:find("%.aly$")
-
-        then
-
-        name = name:gsub("aly$", "lua")
-
-        local path, err = console.build_aly(ls[n].Path)
-
-        if path then
-
-          entry = ZipEntry(dir .. name)
-
-          out.putNextEntry(entry)
-
-          copy(FileInputStream(File(path)), out)
-
-          os.remove(path)
-
-         else
-
-          error(err)
-
-        end
-
-       elseif ls[n].isDirectory() then
-
-        addDir(out, dir .. name .. "/", ls[n])
-
-       else
-
-        entry = ZipEntry(dir .. name)
-
-        out.putNextEntry(entry)
-
-        copy(FileInputStream(ls[n]), out)
-
-      end
-
-    end
-
-  end
-
-  addDir(out, "", f)
-
-  local ff=io.open(f.Path.."/.using","w")
-
-  ff:write(table.concat(using,"\n"))
-
-  ff:close()
-
-  entry = ZipEntry(".using")
-
-  out.putNextEntry(entry)
-
-  copy(FileInputStream(f.Path.."/.using"), out)
-
-  out.closeEntry()
-
-  out.close()
-
-  os.remove(f.Path.."/.using")
-
-  return tmp
-
-end
-
-
-
-
-
 
 
 --导出工程为alp文件
@@ -1917,7 +2031,7 @@ function new_project_dialog()
 
   import "alys.new_pro"
 
-  local project_dlg = AlertDialog.Builder(activity)
+  local project_dlg = MaterialAlertDialogBuilder(activity)
 
   project_dlg.setTitle("新建工程")
 
@@ -2012,7 +2126,7 @@ mAdd.onClick=function()
 
     menu.add("导入工程").onMenuItemClick=function(a)
 
-      alpFindDialog_show()
+      import_alp_dialog()
 
     end
 
@@ -2036,7 +2150,7 @@ mAdd.onClick=function()
 
     menu.add("导入工程").onMenuItemClick=function(a)
 
-      alpFindDialog_show()
+      import_alp_dialog()
 
     end
 
@@ -2137,8 +2251,6 @@ function Creat_Shortcut_Symbol_Bar(id)
 
       layout_height="40dp",
 
-      backgroundColor=状态栏背景色,
-
       {
 
         TextView,
@@ -2189,7 +2301,7 @@ task(1,Creat_Shortcut_Symbol_Bar(ps_bar))
 
 function onKeyDown(code,event)
 
-  if string.find(tostring(event),"KEYCODE_BACK") ~= nil then
+  if code==KeyEvent.KEYCODE_BACK then
 
     if 参数+2 > tonumber(os.time()) then
 
@@ -2250,7 +2362,7 @@ end
 --更新到当前目录或者更新到指定目录
 function _updataList(path)
 
-  save()
+  --save()
 
   --判断有没有指定的目录
   if path then
@@ -2335,9 +2447,9 @@ function _updataList(path)
 
       mItemImg = {
 
-        src= "imgs/folder.png",
+        src= "res/imgs/folder.png",
 
-        colorFilter=图标着色,
+        colorFilter=colorSecondary,
 
       },
       mItemTitle ={
@@ -2389,17 +2501,17 @@ function _updataList(path)
 
     if File(v).isDirectory() then
 
-      i = "imgs/folder.png"
+      i = "res/imgs/folder.png"
 
      else
 
-      i = "imgs/file.png"
+      i = "res/imgs/file.png"
 
     end
 
     if LuaFile.getParent(当前文件路径)==luajava.luaextdir then
 
-      i = "imgs/project.png"
+      i = "res/imgs/project.png"
 
     end
 
@@ -2409,7 +2521,7 @@ function _updataList(path)
 
         src=i,
 
-        colorFilter=图标着色,
+        colorFilter=colorSecondary,
 
       },
       mItemTitle ={
@@ -2498,7 +2610,7 @@ function rename(path,name)
 
   import "alys.new_rename"
 
-  local new_file_dlg = AlertDialog.Builder(activity)
+  local new_file_dlg = MaterialAlertDialogBuilder(activity)
 
   new_file_dlg.setTitle("重命名文件")
 
@@ -2868,7 +2980,7 @@ function create_imports_dlg(path,title)
 
   end
 
-  imports_dlg = AlertDialog.Builder(activity)
+  imports_dlg = MaterialAlertDialogBuilder(activity)
 
   imports_dlg.setTitle("导入")
 
@@ -3071,7 +3183,7 @@ function create_import_dlg()
 
   end
 
-  import_dlg = AlertDialog.Builder(activity)
+  import_dlg = MaterialAlertDialogBuilder(activity)
 
   import_dlg.Title = "可能需要导入的类"
 
@@ -3092,19 +3204,19 @@ end
 
 function onActivityResult(req, res, intent)
 
-  if res ~= 0 and intent~=nil then
+  if res == 10000 then
 
-    if res == 10000 then
+    local alypath = intent.getStringExtra("alypath")
 
-      local alypath = intent.getStringExtra("alypath")
+    open(alypath)
 
-      open(alypath)
+    mLuaEditor.format()
 
-      mLuaEditor.format()
+    return
 
-      return
+  end
 
-    end
+  if res ~= 0 then
 
     local data = intent.getStringExtra("data")
 
@@ -3112,31 +3224,7 @@ function onActivityResult(req, res, intent)
 
     if path == luapath then
 
-      xpcall(function()mLuaEditor.gotoLine(tonumber(line))end,
-
-      function(err)
-
-        if not activity.getSharedData("ignore_reopen_editor_debugmode_error") then
-
-          AlertDialog.Builder(this)
-
-          .setTitle("忽略返回值错误？")
-
-          .setMessage("编辑器发生了一个意外。错误详情："..err.."\n点击确认不再弹出。")
-
-          .setPositiveButton("确定", function()activity.setSharedData("ignore_reopen_editor_debugmode_error",true)end)
-
-          .setNegativeButton("取消", nil)
-
-          .show()
-
-         else
-
-          print("捕获到错误")
-
-        end
-
-      end)
+      editor.gotoLine(tonumber(line))
 
     end
 
@@ -3175,6 +3263,3 @@ function onActivityResult(req, res, intent)
   end
 
 end
-
-
-

@@ -365,7 +365,8 @@ local function binapk(luapath, apkpath)
           [".*\\\\.alp"] = path_pattern or "",
           [".*\\\\.lua"] = "",
           [".*\\\\.luac"] = "",
-          ["github.daisukiKaffuChino.reopenlua.androidx-startup"] = packagename..".androidx-startup"
+          ["github.daisukiKaffuChino.reopenlua.androidx-startup"] = packagename..".androidx-startup",
+          ["github.daisukiKaffuChino.reopenlua.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"] = packagename..".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         }
         for n = 0, list.size() - 1 do
           local v = list.get(n)

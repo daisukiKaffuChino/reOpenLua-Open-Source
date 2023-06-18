@@ -1,13 +1,6 @@
 appname="reOpenLua+"
-appver="0.7.7-rc01"
-appcode="7700"
-packagename="github.daisukiKaffuChino.reopenlua"
-theme="Theme_Material_Light_NoActionBar"
-welcome_time="300"
+welcome_time="2000"
 debugmode=true
+reOpenLuaTheme="Theme.MaterialComponents.Light"
 enableExtendedOutputSupport=false
 enableDialogLog=false
-user_permission={
-  "INTERNET",
-  "WRITE_EXTERNAL_STORAGE"
-}

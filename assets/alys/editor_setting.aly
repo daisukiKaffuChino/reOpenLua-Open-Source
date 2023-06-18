@@ -8,7 +8,8 @@
     TextView;
     layout_width="fill";
     text="以下选项可即时生效。";
-    textSize="14dp";
+    textSize="12dp";
+    textColor=subTextColor;
   };
   {
     LinearLayout;
@@ -20,7 +21,8 @@
       TextView;
       layout_weight="1";
       text="语法错误提示";
-      textSize="16dp";
+      textSize="14dp";
+      textColor=textColor;
     };
     {
       SwitchCompat;
@@ -37,11 +39,30 @@
       TextView;
       layout_weight="1";
       text="缩进提示符";
-      textSize="16dp";
+      textSize="14dp";
+      textColor=textColor;
     };
     {
       SwitchCompat;
       id="sw2";
     };
   };
-};
+  {
+    LinearLayout;
+    gravity="center";
+    layout_width="fill";
+    layout_marginTop="4dp";
+    layout_height="wrap";
+    {
+      TextView;
+      layout_weight="1";
+      text="显示文件标签栏";
+      textSize="14dp";
+      textColor=textColor;
+    };
+    {
+      SwitchCompat;
+      id="sw3";
+    };
+  };
+}

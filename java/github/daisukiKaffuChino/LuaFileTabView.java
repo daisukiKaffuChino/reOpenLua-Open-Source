@@ -18,16 +18,11 @@ public class LuaFileTabView extends TabLayout {
     public LuaFileTabView(Context context, AttributeSet attrs) {
         super(context, attrs);
         addListener();
-        setContext(context);
     }
 
     public LuaFileTabView(Context context) {
         super(context);
         addListener();
-        setContext(context);
-    }
-
-    private void setContext(Context context) {
     }
 
     public String getPath() {
@@ -56,16 +51,14 @@ public class LuaFileTabView extends TabLayout {
         }
 
         for (int i = 0; i < array.size(); i++) {
-            int tabCount = getTabCount();
+            //int tabCount = getTabCount();
             Tab tab = getTabAt(i);
             if (tab != null) {
-                //Log.i("FileTagView", i + "\tAccess Ok");
                 tab.setText((String) array.get(i));
                 TextView textView=(TextView)tab.view.getChildAt(1);
                 textView.setAllCaps(false);
                 //textView.setTextSize(12);
             } else {
-                //Log.i("FileTagView",i+"\tAccess Failed As a null object");
                 tab = newTab().setIcon(R.drawable.ic_round_chevron_left_24);
                 addTab(tab);
                 tab.setText((String) array.get(i));
@@ -78,7 +71,6 @@ public class LuaFileTabView extends TabLayout {
                 new Handler().postDelayed(new Runnable(){
                     @Override
                     public void run() {
-
                         if (selectable) {
                             finalTab.select();
                         }
@@ -87,7 +79,7 @@ public class LuaFileTabView extends TabLayout {
                             smoothScrollTo((int)toX, 0);
                         }
                     }
-                }, 1);
+                }, 10);
             }
         }
 
@@ -129,7 +121,6 @@ public class LuaFileTabView extends TabLayout {
                     }, 1);
                     setDirectPath(path.toString());
                     //selectListener(path);
-
                 }
             }
 

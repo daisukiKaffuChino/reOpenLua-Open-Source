@@ -1,0 +1,122 @@
+0.7.8 (23.05.09)
+修复一个偶尔导致空指针的问题
+
+0.7.8-Dev (23.05.03)
+去年年底写完的项目五一有空来收个尾...不再维护了除非重大bug(￣Д ￣)
+重构 主题功能，现在仅需简单配置init.lua无需任何额外代码即可全局应用Material主题，并修复了之前版本设置NoActionBar主题仍显示标题栏的问题。
+重构 Welcome部分功能实现
+新增 LuaNetStateChangeObserver
+新增 更多编辑器使用指南
+新增 编辑器文件标签导航
+优化 编辑器部分功能/界面
+优化 LuaDialog(致谢AndroLuaX+)
+优化 默认的Material3深色主题
+优化 LogCat支持日志等级标识
+移除 LuaMaterialDialog
+移除 autotheme.lua
+LuaActivity新增了一些方法
+LuaThemeUtil新增更多方法
+更新依赖:
+appcompat库 1.5.0 ->1.6.1
+material库 1.7.0-beta01 ->1.7.0
+新增库 androidx.draganddrop
+更新compileSdk到33
+
+0.7.7-rc03 (22.08.23)
+修复一个bug
+修改readme内容
+
+0.7.7-rc02 (22.08.20)
+完善 应用内深色模式表现
+修复 若干新增bug
+合并 若干原版AndroLua+特性
+修改 帮助页MarkDown实现
+移除 LuaMarkDown
+
+0.7.7-rc01 (22.08.12)
+更新依赖:
+appcompat库 1.4.1 ->1.5.0
+material库 1.5.0 ->1.7.0-beta01
+及其它若干Jetpack组件
+
+新增 编辑器设置
+新增 Java崩溃查看器
+被迫新增 kotlin库
+LuaThemeUtil新增更多方法
+LuaPagerAdapter新增更多方法
+LuaEditor新增更多方法
+LuaActivity新增软键盘监听回调方法
+LuaUtil新增更多方法
+新增 LangUtils
+新增 ExtendedEditText
+新增 LuaReflectionUtil
+修改编辑器io为rawio(旋律写的so)
+新增 文件写入保护(解决丢失文本问题)
+新增 编辑器对图片的预览能力
+移除 RippleLayout
+
+尝试修复LuaActivity偶现的意外报错
+修复布局助手保存异常
+修复编辑器接收返回值偶现的异常
+修复LuaAppDefender的错误
+修复LuaMaterialDialog的错误
+修复工程目录存在中文名txt文件时打包异常
+回滚之前版本对AXML的某处修改
+
+0.7.6
+修复打包安装问题
+修复so未正确解压问题
+合并其它若干修复
+
+0.7.5-rc3 
+新增：
+控件CustomViewPager
+工具类LuaJson和LuaWallpaper
+四个NoActionBar主题
+移除ScreenCaptureActivity
+修复了其它若干bug
+
+0.7.5-rc2
+新增支持库:
+SwipeRefreshLayout
+SlidingPaneLayout
+新增方法getOpenLuaState
+修复了若干问题
+
+0.7.5-rc1
+更新依赖:
+androidx.appcompat 1.0.0 ->1.4.1
+com.google.android.material 1.0.0 ->1.5.0
+AndroLua+底层 5.0.16 ->5.0.19
+修复溢出菜单问题
+修复退出时偶现的报错问题(实验性)
+新增补全了部分继承AppCompatActivity方法
+新增了一些控件和辅助类
+优化了调试相关功能(详见帮助)
+LuaEditor新增去除注释
+删除了android.widget包下的一些类
+尝试体积优化
+
+-修复LuaUtil的遗留问题
+-启动时使用多线程解压
+(致谢@难忘的旋律)
+
+0.7.3-rc2  
+修复遗留问题
+  
+0.7.3
+修复若干显示问题
+修复打包
+新增一些常用支持库
+
+0.7.2
+重写并更新底层到5.0.16
+新增日志记录器
+修复ActionBar溢出菜单
+修复ClassNotFoundException
+
+0.7.1
+修复了一些问题
+
+0.7.0
+第一版

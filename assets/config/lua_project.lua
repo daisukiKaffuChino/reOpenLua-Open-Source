@@ -1,2 +1,4 @@
-last_file_path="/storage/emulated/0/AndroLua/project/new openlua/main.lua"
-last_file_cursor=1600
+last_file_path=nil
+last_file_cursor=nil
+last_dir_path=nil
+last_pro_path=nil

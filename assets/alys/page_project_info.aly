@@ -1,0 +1,159 @@
+{
+  ScrollView,
+  layout_width="fill",
+  layout_height="fill",
+  {
+    LinearLayout,
+    orientation="vertical",
+    layout_width="fill",
+    layout_height="fill",
+    padding="16dp",
+    Focusable=true,
+    FocusableInTouchMode=true,
+    {
+      TextInputLayout,
+      layout_width="fill",
+      hint="名称",
+      style=MDC_R.style.Widget_MaterialComponents_TextInputLayout_FilledBox,
+      {
+        TextInputEditText,
+        id="appname",
+        layout_width="fill",
+        layout_height="fill",
+        singleLine=true,
+      },
+    },
+    {
+      TextInputLayout,
+      layout_width="fill",
+      layout_marginTop="4dp",
+      hint="包名",
+      style=MDC_R.style.Widget_MaterialComponents_TextInputLayout_FilledBox,
+      {
+        TextInputEditText,
+        id="packagename",
+        layout_width="fill",
+        layout_height="fill",
+        singleLine=true,
+      },
+    },
+    {
+      TextInputLayout,
+      layout_width="fill",
+      layout_marginTop="4dp",
+      hint="版本名",
+      style=MDC_R.style.Widget_MaterialComponents_TextInputLayout_FilledBox,
+      {
+        TextInputEditText,
+        id="appver",
+        layout_width="fill",
+        layout_height="fill",
+        singleLine=true,
+      },
+    },
+    {
+      TextInputLayout,
+      layout_width="fill",
+      layout_marginTop="4dp",
+      hint="版本号(整数)",
+      style=MDC_R.style.Widget_MaterialComponents_TextInputLayout_FilledBox,
+      {
+        TextInputEditText,
+        id="appcode",
+        layout_width="fill",
+        layout_height="fill",
+        singleLine=true,
+      },
+    },
+    {
+      TextInputLayout,
+      layout_width="fill",
+      layout_marginTop="4dp",
+      hint="软件启动时间(ms)",
+      style=MDC_R.style.Widget_MaterialComponents_TextInputLayout_FilledBox,
+      {
+        TextInputEditText,
+        id="apptime",
+        layout_width="fill",
+        layout_height="fill",
+        singleLine=true,
+      },
+    },
+
+    {
+      TextView,
+      layout_marginLeft="6dp",
+      text="reOpenLua+主题",
+      textSize="12dp",
+    },
+    {
+      Spinner,
+      w="fill",
+      id="otlist",
+    },
+    {
+      LinearLayout,
+      layout_width="fill",
+      gravity="center|left",
+      {
+        TextView,
+        layout_weight="1",
+        text="启用遗留的原生主题（与reOpenLua+主题不完全兼容）\n仅建议编辑以兼容其它编辑器，本编辑器启用后可能出现问题。",
+        textSize="10dp",
+      },
+      {
+        Switch,
+        id="legacyThemeSw",
+      },
+    },
+
+    {
+      Spinner,
+      w="fill",
+      id="tlist",
+    },
+
+    {
+      Button,
+      text="更改权限",
+      id="btn",
+      layout_width="fill",
+      layout_marginTop="8dp",
+    },
+
+    {
+      ToggleButton,
+      id="debugmode",
+      textOn="调试模式 : 开启",
+      textOff="调试模式 : 关闭",
+      layout_width="fill",
+    },
+
+    {
+      TextView,
+      w="fill",
+      gravity="center",
+      text="以下实验性功能，前提开启调试模式：",
+      textSize="12dp",
+      layout_marginTop="4dp",
+      layout_marginBottom="4dp",
+    },
+
+    {
+      ToggleButton,
+      id="extendedOutputBtn",
+      textOn="增强控制台调试输出 : 开启",
+      textOff="增强控制台调试输出 : 关闭",
+      layout_width="fill",
+    },
+
+    {
+      ToggleButton,
+      id="dialogLogBtn",
+      textOn="用对话框展示调试信息 : 开启",
+      textOff="用对话框展示调试信息 : 关闭",
+      layout_width="fill",
+    },
+
+  },
+}

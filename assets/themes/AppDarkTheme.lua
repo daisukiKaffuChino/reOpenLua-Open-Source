@@ -3,16 +3,25 @@
 --AppDarkTheme/黑色主题
 ----------------------------------------------
 
+local LuaThemeUtil=luajava.bindClass("github.daisukiKaffuChino.utils.LuaThemeUtil")
 
-状态栏背景色 = 0xFF262626
-标题栏背景色 = 状态栏背景色
-侧滑栏背景色 = 0xFF303030
-标题文字颜色 = 0xFFFFFFFF
-副标题文字颜色 = 0xFF888888
-图标着色 = 0xFF888888
-背景色 = 0xff000000
-编辑器背景色 = 0xff303030
+local themeUtil=LuaThemeUtil(this)
 
+colorPrimary=themeUtil.getColorPrimary()
+
+colorPrimaryVariant=themeUtil.getColorPrimaryVariant()
+
+colorOnPrimary=themeUtil.getColorOnPrimary()
+
+colorSecondary=themeUtil.getColorSecondary()
+
+textColor=themeUtil.getAnyColor(R.attr.custom_text_color)
+
+subTextColor=themeUtil.getAnyColor(R.attr.custom_sub_text_color)
+
+colorBackground=themeUtil.getAnyColor(R.attr.custom_bg_color)
+
+colorPrimaryBackground=colorPrimaryVariant
 
 BasewordColor=0xFF81C784
 --关键字
@@ -25,4 +34,4 @@ UserwordColor=0xFF536DFE
 StringColor=0xFFE57373
 
 
-return R.style.Theme_ReOpenLua_MaterialComponent_Dark
+--return R.style.Theme_ReOpenLua_Material3_Dark

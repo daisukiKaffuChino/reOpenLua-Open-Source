@@ -9,6 +9,7 @@
     layout_height="60dp",
     padding="14dp",
     id="mItemImg",
+    colorFilter=colorSecondary,
   },
 
   {
@@ -23,7 +24,7 @@
       gravity="bottom|left",
       textStyle="bold",
       textSize="12dp",
-      textColor=标题文字颜色,
+      textColor=textColor,
       singleLine="true",
       ellipsize="end",
       id="mItemTitle",
@@ -34,7 +35,7 @@
       layout_height="30dp",
       paddingRight="20dp",
       gravity="top|left",
-      textColor=副标题文字颜色,
+      textColor=subTextColor,
       textSize="8dp",
       singleLine="true",
       ellipsize="start",

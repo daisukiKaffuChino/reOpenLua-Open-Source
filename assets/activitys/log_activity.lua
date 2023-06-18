@@ -1,41 +1,50 @@
 require "import"
 import "android.widget.*"
 import "android.view.*"
+import "android.app.*"
+import "android.graphics.Typeface"
+import "android.text.Spannable"
+import "android.text.SpannableString"
+import "android.text.style.ForegroundColorSpan"
+import "android.text.style.BackgroundColorSpan"
+import "android.text.style.TypefaceSpan"
+import "android.content.pm.PackageManager"
+
+--开源致谢:杰西的日志猫高亮实现
 
 theme = ...
 import ("themes."..theme)
-activity.setTitle('LogCat')
-activity.setTheme(import ("themes."..theme))
-import "android.graphics.drawable.ColorDrawable"
-activity.getSupportActionBar().setElevation(0)
-activity.getSupportActionBar().setBackgroundDrawable(ColorDrawable(状态栏背景色))
-activity.getWindow().setStatusBarColor(状态栏背景色)
-activity.getWindow().setNavigationBarColor(状态栏背景色)
+activity.setTitle("LogCat Pro")
 activity.getSupportActionBar().setDisplayShowHomeEnabled(true)
 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true)
+activity.getWindow().setNavigationBarColor(0)
 
-function onOptionsItemSelected(m)
-switch m.getItemId() do
-   case android.R.id.home
-    activity.finish()
-  end
-end
+local type2color={
+  V=0xFF000000,
+  D=0xff2196f3,
+  I=0xff4caf50,
+  W=0xffff9800,
+  E=0xfff44336
+}
 
-edit=EditText(activity)
+local edit=EditText(activity)
 
-edit.Hint="输入关键字"
+edit.Hint="搜索标题或内容"
 edit.Width=activity.Width/2.8
 edit.SingleLine=true
+edit.textColor=0xffffffff
+edit.hintTextColor=0x80ffffff
+edit.backgroundColor=0x00000000
 edit.addTextChangedListener{
   onTextChanged=function(c)
-    scroll.adapter.filter(tostring(c))
+    adapter.filter(tostring(c))
   end
 }
 
 --添加菜单
-items={"All","Lua","Test","Tcc","Error","Warning","Info","Debug","Verbose","Clear"}
+local items={"All","Lua","Test","Tcc","Error","Warning","Info","Debug","Verbose","Clear"}
 function onCreateOptionsMenu(menu)
-  me=menu.add("搜索").setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+  local me=menu.add("搜索").setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
   me.setActionView(edit)
   for k,v in ipairs(items) do
     m=menu.add(v)
@@ -47,23 +56,19 @@ function onOptionsItemSelected(item)
   if func[item.getTitle()] then
     func[item.getTitle()]()
    else
-    print(item,"功能开发中。。。")
+    activity.finish()
   end
 end
 
 function readlog(s)
-  p=io.popen("logcat -d -v long "..s)
+  local p=io.popen("logcat -d -v long "..s)
   local s=p:read("*a")
-  p:close()
-  s=s:gsub("%-+ beginning of[^\n]*\n","")
-  if #s==0 then
-    s="<run the app to see its log output>"
-  end
+  p:close()  
   return s
 end
 
 function clearlog()
-  p=io.popen("logcat -c")
+  local p=io.popen("logcat -c")
   local s=p:read("*a")
   p:close()
   return s
@@ -71,86 +76,119 @@ end
 
 func={}
 func.All=function()
-  activity.setTitle("LogCat - All")
+  activity.getSupportActionBar().setSubtitle("All")
   task(readlog,"",show)
 end
 func.Lua=function()
-  activity.setTitle("LogCat - Lua")
+  activity.getSupportActionBar().setSubtitle("Lua")
   task(readlog,"lua:* *:S",show)
 end
 func.Test=function()
-  activity.setTitle("LogCat - Test")
+  activity.getSupportActionBar().setSubtitle("Test")
   task(readlog,"test:* *:S",show)
 end
 func.Tcc=function()
-  activity.setTitle("LogCat - Tcc")
+  activity.getSupportActionBar().setSubtitle("Tcc")
   task(readlog,"tcc:* *:S",show)
 end
 func.Error=function()
-  activity.setTitle("LogCat - Error")
+  activity.getSupportActionBar().setSubtitle("Error")
   task(readlog,"*:E",show)
 end
 func.Warning=function()
-  activity.setTitle("LogCat - Warning")
+  activity.getSupportActionBar().setSubtitle("Warning")
   task(readlog,"*:W",show)
 end
 func.Info=function()
-  activity.setTitle("LogCat - Info")
+  activity.getSupportActionBar().setSubtitle("Info")
   task(readlog,"*:I",show)
 end
 func.Debug=function()
-  activity.setTitle("LogCat - Debug")
+  activity.getSupportActionBar().setSubtitle("Debug")
   task(readlog,"*:D",show)
 end
 func.Verbose=function()
-  activity.setTitle("LogCat - Verbose")
+  activity.getSupportActionBar().setSubtitle("Verbose")
   task(readlog,"*:V",show)
 end
 func.Clear=function()
   task(clearlog,show)
 end
 
---scroll=ScrollView(activity)
 scroll=ListView(activity)
 scroll.FastScrollEnabled=true
-scroll.setBackgroundDrawable(ColorDrawable(编辑器背景色))
-
-local r="%[ *%d+%-%d+ *%d+:%d+:%d+%.%d+ *%d+: *%d+ *%a/[^ ]+ *%]"
+--scroll.setBackgroundDrawable(ColorDrawable(编辑器背景色))
 
 function show(s)
-  -- logview.setText(s)
-  --print(s)
-  local a=LuaArrayAdapter(activity,{TextView,
-    textIsSelectable=true,
-    textSize="18sp",
-  })
-  local l=1
-  for i in s:gfind(r) do
-    if l~=1 then
-      a.add(s:sub(l,i-1))
+  adapter.clear()  
+  if s and #s~=0 then
+    local nowTitle=""
+    local nowTag=""
+    local nowContent=""
+    for line in s:gmatch("(.-)\n") do
+      if line:find("^%-%-%-%-%-%-%-%-%- beginning of ") then
+        local appVerCode=activity.getPackageManager().getPackageInfo("github.daisukiKaffuChino.reopenlua",PackageManager.GET_ACTIVITIES).versionCode
+        adapter.add({title=line,content="reOpenLua+ LogCatPro Ver."..appVerCode})
+       elseif line:find("^%[ *%d+%-%d+ *%d+:%d+:%d+%.%d+ *%d+: *%d+ *%a/[^ ]+ *%]$") then
+        local date,time,processId,threadId,logType,logTag=line:match("^%[ *(%d+%-%d+) *(%d+:%d+:%d+%.%d+) *(%d+): *(%d+) *(%a)/([^ ]+) *%]$")
+        --print(date,time,processId,threadId,logType,logTag)
+        local title
+        if logTag~="LuaInvocationHandler" then
+          title="[ "..date.." "..time.." "..processId..":"..threadId.."  "
+          local typeIndex=utf8.len(title)
+          title=title..logType.." /"..logTag.." ]"
+          title=SpannableString(title)
+          title.setSpan(BackgroundColorSpan(type2color[logType]),typeIndex-1,typeIndex+2,Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+          title.setSpan(ForegroundColorSpan(0xFFFFFFFF),typeIndex-1,typeIndex+2,Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+          title.setSpan(TypefaceSpan("monospace"),typeIndex-1,typeIndex+2,Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+        end
+        if nowContent~="" and nowTag~="LuaInvocationHandler" then
+          adapter.add({title=nowTitle,content=String(nowContent).trim()})
+        end
+        nowTitle=title--line
+        nowTag=logTag
+        nowContent=""
+       else
+        nowContent=nowContent.."\n"..line
+      end
     end
-    l=i
+   else
+    adapter.add({title="<此项日志为空，请运行以查看其输出>"})
   end
-  a.add(s:sub(l))
-  adapter=a
-  scroll.Adapter=a
 end
 
-func.Lua()
+item={
+    LinearLayout,
+    layout_width="fill",
+    orientation="vertical",
+    padding="8dp",
+    {
+      TextView,
+      textIsSelectable=true,
+      textSize="14sp",
+      id="title",
+      textColor=textColor,
+      textStyle="bold",
+    },
+    {
+      TextView,
+      textIsSelectable=true,
+      textSize="14sp",
+      id="content",
+      textColor=subTextColor,
+    },
+  }
+
+
+adapter=LuaAdapter(activity,item)
+scroll.setAdapter(adapter)
+adapter.setFilter(function(t,b,c)
+  for i,v in ipairs(t)do
+    if tostring(v.title):find(tostring(c),0,true) or tostring(v.content):find(tostring(c),0,true) then
+      b[#b+1]=v
+    end
+  end
+end)
+
 activity.setContentView(scroll)
-import "android.content.ClipData"
-cm=activity.getSystemService(activity.CLIPBOARD_SERVICE)
-
-function copy(str)
-  local cd = ClipData.newPlainText("label",str)
-  cm.setPrimaryClip(cd)
-  Toast.makeText(activity,"已复制到剪切板",1000).show()
-end
---[[adapter.Filter=function(o,n,s)
-  for v in each(o) do
-    if v:find(s) then
-      n.add(v)
-    end
-  end
-end]]
-
+func.Lua()

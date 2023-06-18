@@ -4,26 +4,19 @@ import "android.os.*"
 import "android.widget.*"
 import "android.view.*"
 import "android.text.InputType"
-import "android.graphics.drawable.ColorDrawable"
---import "com.google.android.material.textfield.TextInputLayout"
+import "com.google.android.material.textfield.TextInputLayout"
 import "com.google.android.material.textfield.TextInputEditText"
-import "androidx.appcompat.app.AlertDialog"
 
 require "permission"
 
 projectdir,theme = ...
 import ("themes."..theme)
 activity.setTitle('工程属性')
-activity.setTheme(android.R.style.Theme_Material)
+activity.getWindow().setNavigationBarColor(0)
 
-activity.getSupportActionBar().setElevation(0)
-activity.getSupportActionBar().setBackgroundDrawable(ColorDrawable(状态栏背景色))
-activity.getSupportActionBar().setDisplayShowHomeEnabled(false)
-activity.getWindow().setStatusBarColor(状态栏背景色)
-activity.getWindow().setNavigationBarColor(状态栏背景色)
-
-import "alys.pro"
-activity.setContentView(loadlayout(pro))
+MDC_R=luajava.bindClass"com.google.android.material.R"
+import "alys.page_project_info"
+activity.setContentView(loadlayout(page_project_info))
 
 plist=ListView(activity)
 dlg=LuaDialog(activity)
@@ -45,8 +38,23 @@ debugmode.Checked=app.debugmode==nil or app.debugmode
 extendedOutputBtn.Checked=app.enableExtendedOutputSupport==nil or app.enableExtendedOutputSupport
 dialogLogBtn.Checked=app.enableDialogLog==nil or app.enableDialogLog
 apptime.Text = app.welcome_time or "0"
+if app.enableLegacyTheme==nil then legacyThemeSw.Checked=false else legacyThemeSw.Checked=app.enableLegacyTheme end
 
-plist.ChoiceMode=ListView.CHOICE_MODE_MULTIPLE;
+local function isShowTlist(b)
+  if b then
+    tlist.Visibility=0
+   else
+    tlist.Visibility=8
+  end
+end
+
+isShowTlist(legacyThemeSw.isChecked())
+
+legacyThemeSw.onClick=function(v)
+  isShowTlist(v.isChecked())
+end
+
+plist.ChoiceMode=ListView.CHOICE_MODE_MULTIPLE
 pss={}
 ps={}
 for k,v in pairs(permission_info) do
@@ -80,12 +88,33 @@ for k,v in ipairs(fs) do
   end
 end
 
+local otss={
+  "Theme.Material3.Light",
+  "Theme.Material3.Light.NoActionBar",
+  "Theme.Material3.Dark",
+  "Theme.Material3.Dark.NoActionBar",
+  "Theme.Material3.DayNight",
+  "Theme.MaterialComponents.Light",
+  "Theme.MaterialComponents.Light.NoActionBar",
+  "Theme.MaterialComponents.Dark",
+  "Theme.MaterialComponents.Dark.NoActionBar",
+  "Theme.MaterialComponents.DayNight"}
+
 local tadp=ArrayAdapter(activity,android.R.layout.simple_list_item_1, String(tss))
 tlist.Adapter=tadp
+
+local otadp=ArrayAdapter(activity,android.R.layout.simple_list_item_1, String(otss))
+otlist.Adapter=otadp
 
 for k,v in ipairs(tss) do
   if v==app.theme then
     tlist.setSelection(k-1)
+  end
+end
+
+for k,v in ipairs(otss) do
+  if v==app.reOpenLuaTheme then
+    otlist.setSelection(k-1)
   end
 end
 
@@ -98,9 +127,11 @@ appname="%s"
 appver="%s"
 appcode="%s"
 packagename="%s"
-theme="%s"
 welcome_time="%s"
 debugmode=%s
+reOpenLuaTheme="%s"
+theme="%s"--Deprecated in reOpenLua+
+enableLegacyTheme=%s
 enableExtendedOutputSupport=%s
 enableDialogLog=%s
 user_permission={
@@ -132,7 +163,8 @@ function onOptionsItemSelected(item)
     end
   end
   local thm=tss[tlist.getSelectedItemPosition()+1]
-  local ss=string.format(template,appname.Text,appver.Text,appcode.Text,packagename.Text,thm,apptime.Text,debugmode.isChecked(),extendedOutputBtn.isChecked(),dialogLogBtn.isChecked(),dump(rs))
+  local othm=otss[otlist.getSelectedItemPosition()+1]
+  local ss=string.format(template,appname.Text,appver.Text,appcode.Text,packagename.Text,apptime.Text,debugmode.isChecked(),othm,thm,legacyThemeSw.isChecked(),extendedOutputBtn.isChecked(),dialogLogBtn.isChecked(),dump(rs))
   local f=io.open(luaproject,"w")
   f:write(ss)
   f:close()
@@ -151,4 +183,3 @@ function onKeyDown(e)
     end
   end
 end
-

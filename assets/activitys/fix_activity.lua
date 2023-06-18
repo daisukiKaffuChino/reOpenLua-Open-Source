@@ -5,28 +5,34 @@ import "android.widget.*"
 import "android.view.*"
 import "com.myopicmobile.textwarrior.common.*"
 import "android.content.*"
-import "android.graphics.drawable.ColorDrawable"
-
 
 dir,path,theme=...
 import ("themes."..theme)
 activity.Title="导入分析"
-activity.setTheme(android.R.style.Theme_Material)
-activity.getWindow().setStatusBarColor(状态栏背景色)
-activity.getWindow().setNavigationBarColor(状态栏背景色)
-activity.getSupportActionBar().setElevation(0)
-activity.getSupportActionBar().setBackgroundDrawable(ColorDrawable(状态栏背景色))
 activity.getSupportActionBar().setDisplayShowHomeEnabled(true)
 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true)
+activity.getWindow().setNavigationBarColor(0)
 
-
-import "alys.fix"
 classes=require "activitys.android"
 activity.setTitle('需要导入的类')
 
-
-activity.setContentView(loadlayout(fix))
-
+activity.setContentView(loadlayout({
+  LinearLayout,
+  w="fill",
+  h="fill",
+  gravity="center",
+  {
+    ProgressBar,
+    w="24dp",
+    h="24dp",
+  },
+  {
+    TextView,
+    layout_marginLeft="16dp",
+    textSize="14dp",
+    text="正在分析...",
+  },
+}))
 
 function fiximport(path)
   require "import"
@@ -98,7 +104,6 @@ end
 
 --path=luajava.luapath
 list=ListView(activity)
-list.backgroundColor=状态栏背景色
 list.ChoiceMode=ListView.CHOICE_MODE_MULTIPLE;
 task(fiximport,path,function(v)
     rs=v

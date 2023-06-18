@@ -1,1 +1,1 @@
-last_theme="AppBlueTheme"
+last_theme="AppLightTheme"

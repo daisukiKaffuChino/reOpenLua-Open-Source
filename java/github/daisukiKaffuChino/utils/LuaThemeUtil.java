@@ -202,6 +202,11 @@ public class LuaThemeUtil {
         return typedValue.data;
     }
 
+    public int getColorSecondaryVariant(){
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSecondaryVariant, typedValue, true);
+        return typedValue.data;
+    }
+
     public int getAnyColor(int i) {
         context.getTheme().resolveAttribute(i, typedValue, true);
         return typedValue.data;

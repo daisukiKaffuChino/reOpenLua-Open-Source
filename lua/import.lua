@@ -19,7 +19,7 @@ local libs = luacontext.getLibrarys()
 
 --增加全局固定变量
 R = bindClass("github.daisukiKaffuChino.reopenlua.R")
-L = activity.getOpenLuaState()
+L = activity.getLuaState()
 
 local function libsloader(path)
     local p = libs[path:match("^%a+")]

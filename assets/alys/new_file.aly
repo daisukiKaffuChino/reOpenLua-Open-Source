@@ -1,22 +1,24 @@
 {
-    LinearLayout,
-    orientation="vertical",
-    layout_width="100%w",
-    layout_height="fill",
-    paddingLeft="20dp",
-    paddingTop="20dp",
-    paddingRight="20dp",
-    Focusable=true,
-    FocusableInTouchMode=true,
-    
-      {
-        TextInputEditText,
-        layout_width="fill",
-        layout_height="44dp",
-        hint="文件名称",
-        textSize="12dp",
-        singleLine=true,
-        id="file_name",
-      
+  LinearLayout,  
+  layout_width="fill",
+  layout_height="fill",
+  paddingLeft="16dp",
+  paddingTop="12dp",
+  paddingRight="16dp",
+  Focusable=true,
+  FocusableInTouchMode=true,
+  {
+    TextInputLayout,
+    layout_width="fill",
+    hint="文件名称",
+    style=MDC_R.style.Widget_MaterialComponents_TextInputLayout_FilledBox,
+    {
+      TextInputEditText,
+      layout_width="fill",
+      layout_height="fill",
+      textSize="14dp",
+      --singleLine=true,
+      id="file_name",
     },
-  }
+  },
+}

@@ -38,7 +38,7 @@ layout={
     FloatingActionButton,
     layout_width="-2",
     layout_height="-2",
-    src="imgs/sync",
+    src="res/imgs/sync",
     layout_gravity="bottom|end",
     layout_marginEnd="16dp",
     layout_marginBottom="36dp",

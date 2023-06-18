@@ -56,7 +56,7 @@ public class LuaKeyboardObserver {
                     if (onKeyboardToggleListenerRef.get() != null) {
                         if (!hasSentInitialAction || !isKeyboardShown) {
                             isKeyboardShown = true;
-                            onKeyboardToggleListenerRef.get().onObservedKeyboardShown(initialValue - rootViewRef.get().getHeight());
+                            onKeyboardToggleListenerRef.get().onObservedKeyboardShow(initialValue - rootViewRef.get().getHeight());
                         }
                     }
                 } else {
@@ -78,7 +78,7 @@ public class LuaKeyboardObserver {
     }
 
     public interface OnKeyboardToggleListener {
-        void onObservedKeyboardShown(int keyboardSize);
+        void onObservedKeyboardShow(int keyboardSize);
 
         void onObservedKeyboardHide();
     }
