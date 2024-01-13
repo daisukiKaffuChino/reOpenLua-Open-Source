@@ -1,12 +1,12 @@
 # reOpenLua+
 ## 已终止开发，停止所有维护。
 
-### 诸多修改版AndroLua+中的一种。
+### 基于AndroLua+ 5.0.19的轻量编辑器。
 <img src="https://wx2.sinaimg.cn/large/005WsnUygy1h5fsl2ahvxj30e80e8aa6.jpg" width="50%">
 
-不同于绝大多数基于AndroLua+修改的第三方编辑器，reOpenLua+拥有对Java层的大量修改，修复了大量bug并新增了诸多功能，调用原生特性更容易，使开发体验尽可能贴近原生。
+不同于绝大多数基于AndroLua+修改的第三方编辑器，reOpenLua+拥有对Java层的大量修改，修复了大量bug并新增了诸多功能，调用原生特性更容易，使开发体验尽可能贴近原生。关于AndroLua+（旧版）的核心代码请参阅[AndroLua+的仓库](https://github.com/nirenr/AndroLua_pro)。
 
-虽然reOpenLua+名义上依旧写明基于OpenLua+ 0.4.5开发，但事实上来自OpenLua+的Java代码比重已经趋近于0。本软件目前基于原版AndroLua+ 5.0.19，完全重构了旧版的实现，尽可能修复了OpenLua+的Lua代码错误。~~未来本项目计划完全舍弃旧的Lua代码以期修复一些较底层的问题。~~
+禁止用于编写损害他人或能造成任何不良影响的软件。使用本软件产生的任何后果均与reOpenLua+及作者无关。
 
 有关官方的demo演示，请查看[蓝奏云](https://chino.lanzouv.com/b0dgh7o5i) 密码7c92
 
