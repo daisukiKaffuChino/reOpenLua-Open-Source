@@ -19,13 +19,6 @@ Github [https://github.com/daisukiKaffuChino/reOpenLua-Open-Source](https://gith
 
 对AndroLua+的常用类可能略有改动，实际开发时请**留意Java方法浏览器**。
 
-### 苦于找不到示例？
-虽然现在可能还比较少，但请相信它们对你快速熟悉reOpenLua+非常有用。
-
-在这里下载 [蓝奏云](https://chino.lanzouv.com/b0dgh7o5i) 密码7c92
-
-示例工程将不定期以合集方式上传，如果你感兴趣的话可以多多留意。
-
 ### 对抗Hook干扰
 从0.7.5开始本编辑器内置了基于Native的针对各Hook框架的检查及反制。检查节点设置在加载Lua脚本之前，可保护你的App运行免受干扰。
 

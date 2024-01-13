@@ -169,12 +169,14 @@ item={
 data={
   {text="reOpenLua+概述",file="overview.md"},
   {text="迁移到新标准库",file="lib.md"},
+  {text="运行时权限",file="runtime_pm.md"},
   {text="init.lua新增配置",file="config.md"},
   {text="LuaActivity部分新增方法",file="LuaActivity.md"},
   {text="LuaKeyboardObserver",file="LuaKeyboardObserver.md"},
   {text="LuaNetStateChangeObserver",file="LuaNetStateChangeObserver.md"},
   {text="LuaAppDefender",file="LuaAppDefender.md"},
   {text="LuaCustRecyclerAdapter",file="LuaCustRecyclerAdapter.md"},
+  {text="示例工程包",file="demo.md"},
   --{text="示例工程:Material Design",file="",demo=true},
   --{text="示例工程:LuaCustRecyclerAdapter",file="",demo=true},
 }

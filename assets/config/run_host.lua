@@ -1,0 +1,3 @@
+runningBySelf=true
+hostPackage=nil
+hostActivity=nil

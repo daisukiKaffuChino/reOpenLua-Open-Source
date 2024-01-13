@@ -5,7 +5,10 @@ import "android.widget.*"
 import "android.view.*"
 import "java.io.*"
 
+import "android.net.Uri"
+import "android.content.Intent"
 import "android.content.pm.PackageManager"
+import "android.content.ComponentName"
 import "android.animation.LayoutTransition"
 import "android.graphics.drawable.ColorDrawable"
 import "android.graphics.drawable.GradientDrawable"
@@ -13,9 +16,12 @@ import "android.graphics.drawable.GradientDrawable$Orientation"
 import "android.view.inputmethod.EditorInfo"
 import "android.text.TextUtils"
 import "android.util.TypedValue"
+import "android.Manifest"
 
 import "androidx.appcompat.app.AlertDialog"
 import "androidx.appcompat.widget.SwitchCompat"
+import "androidx.core.app.ActivityCompat"
+import "androidx.core.content.ContextCompat"
 
 import "com.google.android.material.bottomsheet.BottomSheetDialog"
 import "com.google.android.material.bottomsheet.BottomSheetBehavior"
@@ -23,13 +29,14 @@ import "com.google.android.material.textfield.TextInputEditText"
 import "com.google.android.material.textfield.TextInputLayout"
 import "com.google.android.material.tabs.TabLayout"
 import "com.google.android.material.dialog.MaterialAlertDialogBuilder"
+import "com.google.android.material.button.MaterialButton"
 
 import "bin"
 import "console"
 
 import "rawio"
 
---2022 12 26
+--2023 12 07
 
 --[[ALL RIGHTS RESERVED
 AndroLua+ 5.0.19/OpenLua+ 0.6.8/reOpenLua+ 0.7.8
@@ -49,6 +56,8 @@ pcall(dofile,activity.getLuaDir().."/config/lua_theme.lua")
 pcall(dofile,activity.getLuaDir().."/config/last_history.lua")
 
 pcall(dofile,activity.getLuaDir().."/config/editor_config.lua")
+
+pcall(dofile,activity.getLuaDir().."/config/run_host.lua")
 
 
 --主题
@@ -73,6 +82,13 @@ last_history = last_history or {}
 isEdittingProject = false
 
 isEdittingFile = false
+
+--宿主
+runningBySelf = runningBySelf
+
+hostPackage = hostPackage
+
+hostActivity = hostActivity
 
 -----------------------------------------------------------------
 
@@ -302,49 +318,53 @@ end
 
 function save()
 
-  last_history[last_file_path] = mLuaEditor.getSelectionEnd()
+  if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED and
 
-  write(activity.getLuaDir().."/config/lua_history.lua", string.format("last_history=%q", dump(last_history)))
+    ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) then
 
-  local str = nil
+    last_history[last_file_path] = mLuaEditor.getSelectionEnd()
 
-  str = rawio.iotsread(last_file_path, "r")
+    write(activity.getLuaDir().."/config/lua_history.lua", string.format("last_history=%q", dump(last_history)))
 
-  if str==nil then print("read last path failed") end
+    local str = nil
 
-  local src = mLuaEditor.getText().toString()
+    str = rawio.iotsread(last_file_path, "r")
 
-  if src ~= str then
+    if str==nil and isEdittingProject then print("读取最近编辑的文件内容失败") end
 
-    if TextUtils.isEmpty(src) and isEdittingProject==true then
+    local src = mLuaEditor.getText().toString()
 
-      MaterialAlertDialogBuilder(this)
+    if src ~= str then
 
-      .setTitle("写入保护")
+      if TextUtils.isEmpty(src) and isEdittingProject==true then
 
-      .setMessage("编辑器正尝试将当前已打开的文件置空。如果这是编辑器的错误而不是您主动删除了所有文本，请拒绝或尝试重新载入。")
+        MaterialAlertDialogBuilder(this)
 
-      .setPositiveButton("重新载入",function()
+        .setTitle("写入保护")
 
-        xpcall(function()read(last_file_path)end,function(err)print("载入失败:"..err)end)
+        .setMessage("编辑器正尝试将当前已打开的文件置空。如果这是编辑器的错误而不是您主动删除了所有文本，请拒绝或尝试重新载入。")
 
-      end)
+        .setPositiveButton("重新载入",function()
 
-      .setNegativeButton("拒绝",nil)
+          xpcall(function()read(last_file_path)end,function(err)print("载入失败:"..err)end)
 
-      .setNeutralButton("允许",function()write(last_file_path, src)end)
+        end)
 
-      .show()
+        .setNegativeButton("拒绝",nil)
 
-     else
+        .setNeutralButton("允许",function()write(last_file_path, src)end)
 
-      write(last_file_path, src)
+        .show()
+
+       else
+
+        write(last_file_path, src)
+
+      end
 
     end
 
   end
-
-  return src
 
 end
 
@@ -538,40 +558,40 @@ function onVersionChanged(n,o)
 end
 
 
+function showPmPanel(t)
 
---动态申请所有权限
+if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED and
+  ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) then
 
-function ApplicationAuthority()
+  mMain.setVisibility(0)
 
-  local mAppPermissions = ArrayList()
+  mPm.setVisibility(8)
 
-  local mAppPermissionsTable = luajava.astable(activity.getPackageManager().getPackageInfo(activity.getPackageName(),PackageManager.GET_PERMISSIONS).requestedPermissions)
+ else
 
-  for k,v in pairs(mAppPermissionsTable) do
+  mMain.setVisibility(8)
 
-    mAppPermissions.add(v)
+  mPm.setVisibility(0)
+
+  when t print("授权失败")
 
   end
 
-  local size = mAppPermissions.size()
-
-  local mArray = mAppPermissions.toArray(String[size])
-
-  activity.requestPermissions(mArray,0)
-
 end
-
-ApplicationAuthority()
-
-
-
 
 --权限申请回调
 
-onRequestPermissionsResult=function(r,p,g)
+function onRequestPermissionsResult(reqCode,permissions,grantResults)
+
+  if reqCode == 114514 then
+
+    showPmPanel(true)
+
+  end
 
 end
 
+showPmPanel()
 
 
 --侧滑栏按钮点击事件
@@ -588,8 +608,6 @@ end
 
 mPlay.onClick=function()
 
-  local pro = mTitle.Text
-
   if not isEdittingProject then
 
     print("没有打开工程")
@@ -600,7 +618,31 @@ mPlay.onClick=function()
 
     local main = app_root_pro_dir.."/"..mTitle.Text.."/".."main.lua"
 
-    activity.newProject(main)
+    if runningBySelf then
+
+      activity.newProject(main)
+
+     else
+
+      local success,err=pcall(function()
+
+        local intent=Intent(Intent.ACTION_VIEW,Uri.parse(main))
+
+        local componentName=ComponentName(hostPackage,hostActivity)
+
+        intent.setComponent(componentName)
+
+        activity.startActivity(intent)
+
+      end)
+
+      if not(success) then
+
+        print("打开失败")
+
+      end
+
+    end
 
   end
 
@@ -975,6 +1017,64 @@ last_pro_path=nil]])
 
     sw3.setChecked(showFileLabel)
 
+    setbtn1.onClick=function()
+
+      MaterialAlertDialogBuilder(this)
+
+      .setTitle("设置运行环境")
+
+      .setView(loadlayout("alys.editor_setting_env"))
+
+      .setPositiveButton("保存",function()
+
+        runningBySelf=env_sw.isChecked()
+        
+        hostPackage=env_edt_packagename.Text
+        
+        hostActivity=env_edt_activity.Text
+
+        write(activity.getLuaDir().."/config/run_host.lua", string.format("runningBySelf=%q", env_sw.isChecked()).."\n"..string.format("hostPackage=%q", env_edt_packagename.Text).."\n"..string.format("hostActivity=%q", env_edt_activity.Text))
+
+      end)
+
+      .setNegativeButton("取消",nil)
+
+      .show()
+
+      env_sw.setChecked(runningBySelf)
+
+      env_edt_packagename.setText(hostPackage)
+
+      env_edt_activity.setText(hostActivity)
+
+      local function toggleEdtVisibility(x)
+
+        if x then
+
+          env_edt_packagename.setVisibility(8)
+
+          env_edt_activity.setVisibility(8)
+
+         else
+
+          env_edt_packagename.setVisibility(0)
+
+          env_edt_activity.setVisibility(0)
+
+        end
+
+      end
+
+      toggleEdtVisibility(runningBySelf)
+
+      env_sw.onClick=function(v)
+
+        toggleEdtVisibility(env_sw.isChecked())
+
+      end
+
+    end
+
     sw1.onClick=function(v)
 
       errMsg=v.isChecked()
@@ -1040,6 +1140,12 @@ last_pro_path=nil]])
   menu5.add("reOpenLua+帮助").onMenuItemClick=function(a)
 
     activity.newActivity("activitys/help_activity",{ last_theme })
+
+  end
+
+  menu.add("权限").onMenuItemClick=function(a)
+
+    activity.newActivity("activitys/permission_activity",{ last_theme })
 
   end
 
@@ -1252,7 +1358,19 @@ function onCreate()
 
    else
 
-    open(last_file_path)
+    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED and
+
+      ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) then
+
+      open(last_file_path)
+
+     else
+
+      mMain.setVisibility(8)
+
+      mPm.setVisibility(0)
+
+    end
 
     isEdittingProject = true
 

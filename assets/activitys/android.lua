@@ -4193,6 +4193,7 @@ return {
 "android.security.keystore.KeyGenParameterSpec$Builder",
 "android.security.keystore.KeyInfo",
 "android.security.keystore.KeyProtection",
+"android.view.View",
 "android.view.InputEvent",
 "android.view.GestureDetector$OnGestureListener",
 "android.view.Window$Callback",
