@@ -1,5 +1,5 @@
 # reOpenLua+
-## 暂停开发，仅保留有限支持（比如，偶尔更新下依赖）
+## 已终止开发，停止所有维护。
 
 ### 诸多修改版AndroLua+中的一种。
 <img src="https://wx2.sinaimg.cn/large/005WsnUygy1h5fsl2ahvxj30e80e8aa6.jpg" width="50%">
